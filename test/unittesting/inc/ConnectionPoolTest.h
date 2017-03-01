@@ -34,19 +34,16 @@
  * trademark licensing policies.
  *
  */
-#include <drmaa2.h>
-#include <testdrmaa.h>
-#include <iostream>
+#ifndef CONNECTIONPOOLTEST_H_
+#define CONNECTIONPOOLTEST_H_
+#include <cppunit/extensions/HelperMacros.h>
 
-using namespace std;
-#ifdef DRMAA2_DEBUG
-void TestDRMAA() {
-	cout<<"Testing DRMAA"<<endl;
-}
+class ConnectionPoolTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(ConnectionPoolTest);
+        CPPUNIT_TEST(TestConnectionPool);
+        CPPUNIT_TEST_SUITE_END();
+public:
+        void TestConnectionPool();
+};
 #endif
-int main() {
-#ifdef DRMAA2_DEBUG
-	TestDRMAA();
-#endif
-}
 

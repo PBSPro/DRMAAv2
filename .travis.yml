@@ -25,7 +25,7 @@ install:
     - ${DOCKER_EXEC} zypper -n install sendmail
     - ${DOCKER_EXEC} zypper -n install gcc-c++
     - ${DOCKER_EXEC} zypper -n install cppunit-devel
-    - ${DOCKER_EXEC} lynx -dump http://pbspro.org/Download.aspx | awk '/http/{print $2}' | grep OpenSUSE_13.2.zip > link
+    - ${DOCKER_EXEC} lynx -dump http://pbspro.org/Download.aspx | awk '/http/{print $2}' | grep openSUSE_13.2.zip > link
     - ${DOCKER_EXEC} wget `cat link`
     - ${DOCKER_EXEC} unzip openSUSE_13.2.zip
     - ${DOCKER_EXEC} zypper -n ref

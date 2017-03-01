@@ -34,12 +34,27 @@
  * trademark licensing policies.
  *
  */
-#ifndef TESTDRMAA_H_
-#define TESTDRMAA_H_
-#include <drmaa2.h>
+#include <cppunit/extensions/TestFactoryRegistry.h>
+#include <cppunit/ui/text/TestRunner.h>
 
-#ifdef DRMAA2_DEBUG
+#include<iostream>
 
-void TestDRMAA();
-#endif
-#endif /*TESTDRMAA_H_*/
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+        bool testSuccessful = false;
+
+        try
+        {
+		CppUnit::TextUi::TestRunner runner;
+		CppUnit::TestFactoryRegistry &registry = CppUnit::TestFactoryRegistry::getRegistry();
+		runner.addTest(registry.makeTest());
+		testSuccessful = runner.run();
+	} catch(const std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		testSuccessful = false;
+	}
+	return testSuccessful?0:1;
+}
+

@@ -36,4 +36,4 @@
 #  trademark licensing policies.
 #
 noinst_HEADERS = \
-	testdrmaa.h
+	ConnectionPoolTest.h

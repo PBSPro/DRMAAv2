@@ -1069,7 +1069,7 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~SessionManager(void);
+	virtual ~SessionManager(void) {};
 
 	/**
 	 * @brief Returns DRMAA implementation vendor name

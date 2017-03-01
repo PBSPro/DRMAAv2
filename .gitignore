@@ -1,0 +1,88 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.slo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.lai
+
+# module files
+*.mod
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+
+# Eclipse project files
+.project
+.cproject
+.pydevproject
+.settings/
+
+# Files used by cscope
+cscope.files
+cscope.out
+
+# Files used by gtags
+GPATH
+GRTAGS
+GTAGS
+
+# Build directory
+target/
+
+# From automake/autoconf
+autom4te.cache/
+autoscan.log
+autoscan-*.log
+configure.scan
+config.status
+aclocal.m4
+config.*
+compile
+install-sh
+missing
+depcomp
+COPYING
+
+# Libtool
+libtool
+m4/libtool.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+m4/lt~obsolete.m4
+ltmain.sh
+
+# Build related files
+configure
+Makefile.in
+Makefile
+*.deps
+
+# Generated binaries
+
+

@@ -37,9 +37,9 @@
 
 noinst_LTLIBRARIES=     libsrc.la
 
-libsrc_la_SOURCES=      Session.cpp 
+libsrc_la_SOURCES=      Session.cpp  SessionManagerImpl.cpp
 
-libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc
+libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding
 
 libsrc_la_LDFLAGS  =    $(COVERAGE_LDFLAGS)
 

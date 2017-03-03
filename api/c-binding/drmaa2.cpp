@@ -35,16 +35,20 @@
  *
  */
 
-#include <drmaa2.h>
-#include <iostream>
+#include "drmaa2.hpp"
+#include "drmaa2.h"
+
+#include <string>
+
+#include "SessionManagerImpl.h"
 
 using namespace std;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <string.h>
 
-#include <drmaa2.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -1498,7 +1502,7 @@ drmaa2_machineinfo_list drmaa2_msession_get_all_machines(
  */
 drmaa2_string drmaa2_get_drms_name(void) {
 	//TODO Add Code here
-	return NULL;
+	return (strdup( drmaa2::Singleton<drmaa2::SessionManager, drmaa2::SessionManagerImpl>::getInstance()->getDrmaaName().c_str()));
 }
 
 /**

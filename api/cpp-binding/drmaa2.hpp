@@ -37,10 +37,9 @@
 
 #ifndef DRMAA2_HPP_
 #define DRMAA2_HPP_
-
+#include <config.h>
 #include <ctime>
 #include <list>
-#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -192,6 +191,10 @@ public:
  *
  * */
 struct Version {
+	Version(string major_, string minor_) :
+			major(major_), minor(minor_) {
+		//DO nothing
+	}
 	string major; /*!< Major number of version*/
 	string minor; /*!< Minor number of version*/
 };
@@ -793,9 +796,11 @@ public:
 	 * @param jobCategories_ - Job Categories
 	 *
 	 */
-	JobSession(const string& contact_, const string& sessionName_,
+	JobSession(const string& contact_,
+			const string& sessionName_,
 			const StringList& jobCategories_) :
-			contact(contact_), sessionName(sessionName_),
+					contact(contact_),
+					sessionName(sessionName_),
 					jobCategories(jobCategories_) {
 
 	}
@@ -968,9 +973,61 @@ public:
 	 */
 	virtual const QueueInfoList& getAllQueues(list<string> queues_) = 0;
 };
+
+/**
+ * @class Singleton
+ * @brief Template singleton class to make a Class as Singleton
+ * 			IfaceT - Abstract data type class
+ * 			ImplT - Concrete class of IfaceT
+ */
+
+template<typename IfaceT, typename ImplT>
+class Singleton {
+private:
+	static IfaceT * m_instance;
+
+	/**
+	 * @brief Default constructor
+	 */
+	Singleton();
+
+	/**
+	 * @brief Copy constructor is private so that
+	 * 			instance cannot be created outside class
+	 * 	@param obj_ - Singleton object to be copied
+	 */
+	Singleton(Singleton const& obj_);
+	/**
+	 * @brief Assignment operator is overloaded and is private
+	 * 			so that instance cannot be created outside class
+	 * 	@param obj_ - Singleton object to be copied
+	 */
+	Singleton& operator=(Singleton const& obj_);
+
+public:
+	/**
+	 * @brief to get single Instance
+	 *
+	 * @return  IfaceT - Abstract class reference
+	 *
+	 */
+	static IfaceT* getInstance() {
+		pthread_mutex_lock(&ImplT::_posixMutex);
+		if (m_instance == NULL) {
+			m_instance = new ImplT();
+			/*assert(m_instance!= NULL);*/
+		}
+		pthread_mutex_unlock(&ImplT::_posixMutex);
+		return m_instance;
+	}
+};
+
+template<typename IfaceT, typename ImplT>
+IfaceT *Singleton<IfaceT, ImplT>::m_instance = NULL;
+
 /**
  * @class SessionManager
- * @brief Abstract singleton class is used for establishing communication
+ * @brief Abstract class is used for establishing communication
  * 			with the DRM system. By the help of this interface, sessions for
  * 			job management, monitoring,and/or reservation management can be
  * 			maintained
@@ -987,15 +1044,12 @@ private:
 	const Version drmaaVersion; /*!< provides the minor / major version number
 	 information for the DRMAA implementation*/
 
-private:
-
-	/**
-	 * @brief Constructor
-	 */
-	SessionManager() {
-
+public:
+	SessionManager() :
+			drmsName(DRMS_NAME), drmaaName(DRMAA_NAME), drmsVersion(
+			DRMS_MAJOR_VERSION, DRMS_MINOR_VERSION), drmaaVersion(
+			DRMAA_MAJOR_VERSION, DRMAA_MINOR_VERSION) {
 	}
-
 	/**
 	 * @brief Constructor
 	 *
@@ -1011,13 +1065,6 @@ private:
 					drmaaName_), drmaaVersion(drmaaVersion_) {
 
 	}
-public:
-
-	/**
-	 * SessionManager as singleton
-	 */
-	static SessionManager& getInstance();
-
 
 	/**
 	 * Destructor
@@ -1248,6 +1295,5 @@ public:
 	 */
 	virtual void registerEventNotification(const DrmaaCallback& callback) = 0;
 };
-
 }
 #endif /* DRMAA2_HPP_ */

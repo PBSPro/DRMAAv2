@@ -45,7 +45,7 @@ libdrmaav2include_HEADERS = c-binding/drmaa2.h
 
 libdrmaav2_la_LIBADD = $(top_srcdir)/src/libsrc.la
 
-libdrmaav2_la_CPPFLAGS = -I$(top_srcdir)/api/c-binding -I$(top_srcdir)/api/cpp-binding
+libdrmaav2_la_CPPFLAGS = -I$(top_srcdir)/api/c-binding -I$(top_srcdir)/api/cpp-binding -I$(top_srcdir)/inc
 
 libdrmaav2_la_LDFLAGS = $(COVERAGE_LDFLAGS)
 

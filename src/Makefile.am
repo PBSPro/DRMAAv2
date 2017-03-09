@@ -37,7 +37,23 @@
 
 noinst_LTLIBRARIES=     libsrc.la
 
-libsrc_la_SOURCES=      Session.cpp  SessionManagerImpl.cpp
+libsrc_la_SOURCES= Session.cpp  \
+                   SessionManagerImpl.cpp \
+                   Message.cpp \
+                   SourceInfo.cpp \
+                   DeniedByDrmsException.cpp \
+                   ImplementationSpecificException.cpp \
+                   InvalidSessionException.cpp \
+                   TimeoutException.cpp \
+                   UnsupportedOperationException.cpp \
+                   Drmaa2Exception.cpp \
+                   InternalException.cpp \
+                   InvalidStateException.cpp \
+                   TryLaterException.cpp \
+                   DrmCommunicationException.cpp \
+                   InvalidArgumentException.cpp \
+                   OutOfResourceException.cpp \
+                   UnsupportedAttributeException.cpp
 
 libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding
 

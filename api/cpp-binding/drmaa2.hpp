@@ -521,7 +521,7 @@ public:
 	 */
 	virtual void waitTerminated(TimeAmount& timeout_) = 0;
 };
-typedef list<Job> JobList;
+typedef list<Job>* JobList;
 
 /**
  * @class JobArray
@@ -680,7 +680,7 @@ public:
 	 */
 	virtual void terminate(void) = 0;
 };
-typedef list<Reservation> ReservationList;
+typedef list<Reservation>* ReservationList;
 
 /**
  * @class ReservationSession

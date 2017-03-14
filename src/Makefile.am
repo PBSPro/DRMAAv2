@@ -53,8 +53,9 @@ libsrc_la_SOURCES= Session.cpp  \
                    DrmCommunicationException.cpp \
                    InvalidArgumentException.cpp \
                    OutOfResourceException.cpp \
-                   UnsupportedAttributeException.cpp
-
+                   UnsupportedAttributeException.cpp \
+                   DRMSystem.cpp \
+                   PBSProSystem.cpp
 libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding
 
 libsrc_la_LDFLAGS  =    $(COVERAGE_LDFLAGS)

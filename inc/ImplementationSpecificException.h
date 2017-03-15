@@ -56,7 +56,7 @@ public:
 	 *
 	 * @param message - Message associated to the exception.
 	 * @param sourceInfo - Source location related to the exception.
-	 * @parm errorCode - DRMS specific error code
+	 * @param errorCode - DRMS specific error code
 	 *
 	 */
 	ImplementationSpecificException(long errorCode,
@@ -72,7 +72,7 @@ public:
 	/**
 	 * @brief Getter method for error code
 	 *
-	 * @return - errorCode
+	 * @return - errorCode_
 	 */
 	const int getErrorCode(long errorCode_) const {
 		return _errorCode;
@@ -81,7 +81,7 @@ public:
 	/**
 	 * @brief Setter method for message
 	 *
-	 * @param _errorCode_ - errorCode
+	 * @param errorCode_ - errorCode
 	 *
 	 * @return - None
 	 */

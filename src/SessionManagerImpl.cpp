@@ -36,9 +36,14 @@
  */
 
 #include <SessionManagerImpl.h>
+#include <log4cxx/propertyconfigurator.h>
+
+using namespace log4cxx;
 
 namespace drmaa2 {
 pthread_mutex_t SessionManagerImpl::_posixMutex = PTHREAD_MUTEX_INITIALIZER;
+
+LoggerPtr SessionManagerImpl::logger(Logger::getLogger("SessionManagerImpl"));
 
 SessionManagerImpl::~SessionManagerImpl() {
 	// TODO Auto-generated destructor stub
@@ -114,4 +119,11 @@ void SessionManagerImpl::registerEventNotification(
 	//TODO Add Code here
 }
 
+void SessionManagerImpl::initialize() {
+	/*Logger initialization */
+	string loggerConfigFile = string(SYSCONFDIR) + string(DRMAA2_LOGGER_CONFIG);
+	PropertyConfigurator::configure(loggerConfigFile);
+}
+
 } /* namespace drmaa2 */
+

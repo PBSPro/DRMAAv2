@@ -34,31 +34,31 @@
 #  "PBS Professional®", and "PBS Pro™" and Altair’s logos is subject to Altair's 
 #  trademark licensing policies.
 #
+#############################################################
+#The macro helps to enable/disable logging. By default 
+# the logging is enabled. Macro defines a new macro
+# DRMAA2_LOGGER, which can be used in  source
+############################################################# 
+AC_DEFUN([AC_LOGGER],
+[
+  AC_MSG_CHECKING([whether logging is enabled])
+  AC_ARG_ENABLE([logger],
+    AC_HELP_STRING([--enable-logging], [enable logging information]),
+    [ case "$enableval" in
+        yes) enable_logger=yes ;;
+        no)  enable_logger=no ;;
+        *)   AC_MSG_RESULT([none])
+             AC_MSG_ERROR([bad value "$enableval" for --enable-logger]) ;;
+      esac
+    ]
+  )
 
-noinst_LTLIBRARIES=     libsrc.la
+  if test "$enable_logger" = yes; then	
+	AC_DEFINE(DRMAA2_LOGGER, 1, [define to enable loggging])
+  else 
+	AC_DEFINE(DRMAA2_LOGGER, 0, [define to disable logging]) 
+  fi
+  AC_DEFINE(DRMAA2_LOGGER_CONFIG,"Log4cxxConfig.cfg" , [Logger config file name])
 
-libsrc_la_SOURCES= Session.cpp  \
-                   SessionManagerImpl.cpp \
-                   Message.cpp \
-                   SourceInfo.cpp \
-                   DeniedByDrmsException.cpp \
-                   ImplementationSpecificException.cpp \
-                   InvalidSessionException.cpp \
-                   TimeoutException.cpp \
-                   UnsupportedOperationException.cpp \
-                   Drmaa2Exception.cpp \
-                   InternalException.cpp \
-                   InvalidStateException.cpp \
-                   TryLaterException.cpp \
-                   DrmCommunicationException.cpp \
-                   InvalidArgumentException.cpp \
-                   OutOfResourceException.cpp \
-                   UnsupportedAttributeException.cpp
-
-libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding -DSYSCONFDIR='"$(sysconfdir)"'
-
-libsrc_la_LDFLAGS  =    $(COVERAGE_LDFLAGS)
-
-clean-local:
-	rm -rf *.info *.gcno *.png *.html *.o *.lo
-
+  AC_MSG_RESULT([${enable_LOGGER=yes}])
+])

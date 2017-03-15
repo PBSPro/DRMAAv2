@@ -48,6 +48,15 @@
 void drmaa2_cpptest();
 #endif
 
+#ifndef DRMAA2_LOGGER
+#define LOG4CXX_TRACE(logger, expression)
+#define LOG4CXX_DEBUG(logger, expression)
+#define LOG4CXX_INFO(logger, expression)
+#define LOG4CXX_WARN(logger, expression)
+#define LOG4CXX_ERROR(logger, expression)
+#define LOG4CXX_FATAL(logger, expression)
+#endif
+
 using namespace std;
 
 /**
@@ -1016,6 +1025,11 @@ public:
 		if (m_instance == NULL) {
 			m_instance = new ImplT();
 			/*assert(m_instance!= NULL);*/
+			/**
+			 * The initialize is specific method in IfaceT
+			 * should be defined in ImplT
+			 */
+			m_instance->initialize();
 		}
 		pthread_mutex_unlock(&ImplT::_posixMutex);
 		return m_instance;
@@ -1115,6 +1129,16 @@ public:
 	const Version& getDrmsVersion(void) const {
 		return drmsVersion;
 	}
+
+	/**
+	 * @brief Initialize session manager
+	 *
+	 * @param - None
+	 *
+	 * @return None
+	 *
+	 */
+	virtual void initialize() = 0;
 
 	/**
 	 * @brief Allows to test if the DRMAA implementation supports a feature

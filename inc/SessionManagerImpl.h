@@ -39,7 +39,6 @@
 #define SRC_SESSIONMANAGERIMPL_H_
 
 #include <string>
-#include <log4cxx/logger.h>
 
 #include "drmaa2.hpp"
 
@@ -83,8 +82,6 @@ private:
 	 */
 	SessionManagerImpl& operator=(SessionManagerImpl const& obj_);
 public:
-
-	static log4cxx::LoggerPtr logger; /*<! Logger for class*/
 	/**
 	 * @brief default destructor
 	 */

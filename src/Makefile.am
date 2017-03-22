@@ -55,7 +55,7 @@ libsrc_la_SOURCES= Session.cpp  \
                    OutOfResourceException.cpp \
                    UnsupportedAttributeException.cpp
 
-libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding -DSYSCONFDIR='"$(sysconfdir)"'
+libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding
 
 libsrc_la_LDFLAGS  =    $(COVERAGE_LDFLAGS)
 

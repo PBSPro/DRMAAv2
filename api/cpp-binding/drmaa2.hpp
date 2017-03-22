@@ -48,15 +48,6 @@
 void drmaa2_cpptest();
 #endif
 
-#ifndef DRMAA2_LOGGER
-#define LOG4CXX_TRACE(logger, expression)
-#define LOG4CXX_DEBUG(logger, expression)
-#define LOG4CXX_INFO(logger, expression)
-#define LOG4CXX_WARN(logger, expression)
-#define LOG4CXX_ERROR(logger, expression)
-#define LOG4CXX_FATAL(logger, expression)
-#endif
-
 using namespace std;
 
 /**
@@ -1083,7 +1074,9 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~SessionManager(void);
+	virtual ~SessionManager(void) {
+
+	}
 
 	/**
 	 * @brief Returns DRMAA implementation vendor name
@@ -1319,5 +1312,157 @@ public:
 	 */
 	virtual void registerEventNotification(const DrmaaCallback& callback) = 0;
 };
+
+/**
+ * @class Logger
+ * @brief Abstract class for logger functionality. Developer need to extend this
+ * 			class and create an object of the extended class and pass the object to
+ * 			ADT. From there onwards the extended class object's functionality are used
+ * 			for logging.
+ * 			The class is modified version of singleTon design pattern
+ */
+class Logger {
+	static Logger* m_instance;
+	static pthread_mutex_t _posixMutex;
+public:
+	/**
+	 * @brief Method exposed to set the extended Logger Object
+	 *
+	 * @param[in] logger_ : Extended Logger object
+	 */
+	static void setLoggerInstance(Logger *logger_) {
+		// Assert the logger_ object
+		pthread_mutex_lock(&Logger::_posixMutex);
+		m_instance = logger_;
+		pthread_mutex_unlock(&Logger::_posixMutex);
+	}
+	/**
+	 * @brief to get Logger Instance
+	 *
+	 * @return  Logger - Logger reference
+	 *
+	 */
+	static Logger* getInstance() {
+		return m_instance;
+	}
+
+public:
+
+	/**
+	 * Destructor
+	 */
+	virtual ~Logger() {
+
+	}
+	/**
+	 * @brief Logs debug level information based on log level set
+	 *
+	 *
+	 * @param[in] file - file name for which logging done
+	 *
+	 * @param[in] line - line number for which logging done
+	 *
+	 * @param[in] msg - Logging message
+	 *
+	 * @return  - None
+	 *
+	 */
+	virtual void logDebug(const string& file, const int line,
+			const string& msg) = 0;
+
+	/**
+	 * @brief Logs trace level information based on log level set
+	 *
+	 *
+	 * @param[in] file - file name for which logging done
+	 *
+	 * @param[in] line - line number for which logging done
+	 *
+	 * @param[in] msg - Logging message
+	 *
+	 * @return  - None
+	 *
+	 */
+	virtual void logTrace(const string& file, const int line,
+			const string& msg) = 0;
+
+	/**
+	 * @brief Logs info level information based on log level set
+	 *
+	 *
+	 * @param[in] file - file name for which logging done
+	 *
+	 * @param[in] line - line number for which logging done
+	 *
+	 * @param[in] msg - Logging message
+	 *
+	 * @return  - None
+	 *
+	 */
+	virtual void logInfo(const string& file, const int line,
+			const string& msg) = 0;
+	/**
+	 * @brief Logs warning level information based on log level set
+	 *
+	 *
+	 * @param[in] file - file name for which logging done
+	 *
+	 * @param[in] line - line number for which logging done
+	 *
+	 * @param[in] msg - Logging message
+	 *
+	 * @return  - None
+	 *
+	 */
+	virtual void logWarn(const string& file, const int line,
+			const string& msg) = 0;
+	/**
+	 * @brief Logs error level information based on log level set
+	 *
+	 *
+	 * @param[in] file - file name for which logging done
+	 *
+	 * @param[in] line - line number for which logging done
+	 *
+	 * @param[in] msg - Logging message
+	 *
+	 * @return  - None
+	 *
+	 */
+	virtual void logError(const string& file, const int line,
+			const string& msg) = 0;
+	/**
+	 * @brief Logs fatal level information based on log level set
+	 *
+	 *
+	 * @param[in] file - file name for which logging done
+	 *
+	 * @param[in] line - line number for which logging done
+	 *
+	 * @param[in] msg - Logging message
+	 *
+	 * @return  - None
+	 *
+	 */
+	virtual void logFatal(const string& file, const int line,
+			const string& msg) = 0;
+};
+
+#ifdef DRMAA2_LOGGER
+#define DRMAA2_LOG_TRACE(file, line, msg) drmaa2::Logger::getInstance()->logTrace(file, line, msg)
+#define DRMAA2_LOG_DEBUG(file, line, msg) drmaa2::Logger::getInstance()->logDebug(file, line, msg)
+#define DRMAA2_LOG_INFO(file, line, msg) drmaa2::Logger::getInstance()->logInfo(file, line, msg)
+#define DRMAA2_LOG_WARN(file, line, msg) drmaa2::Logger::getInstance()->logWarn(file, line, msg)
+#define DRMAA2_LOG_ERROR(file, line, msg) drmaa2::Logger::getInstance()->logError(file, line, msg)
+#define DRMAA2_LOG_FATAL(file, line, msg) drmaa2::Logger::getInstance()->logFatal(file, line, msg)
+#else
+#define DRMAA2_LOG_TRACE(file, line, msg)
+#define DRMAA2_LOG_DEBUG(file, line, msg)
+#define DRMAA2_LOG_INFO(file, line, msg)
+#define DRMAA2_LOG_WARN(file, line, msg)
+#define DRMAA2_LOG_ERROR(file, line, msg)
+#define DRMAA2_LOG_FATAL(file, line, msg)
+#endif
+
 }
 #endif /* DRMAA2_HPP_ */

@@ -43,7 +43,7 @@ AC_DEFUN([AC_LOGGER],
 [
   AC_MSG_CHECKING([whether logging is enabled])
   AC_ARG_ENABLE([logger],
-    AC_HELP_STRING([--enable-logging], [enable logging information]),
+    AC_HELP_STRING([--enable-logger], [enable logging information]),
     [ case "$enableval" in
         yes) enable_logger=yes ;;
         no)  enable_logger=no ;;
@@ -54,11 +54,8 @@ AC_DEFUN([AC_LOGGER],
   )
 
   if test "$enable_logger" = yes; then	
-	AC_DEFINE(DRMAA2_LOGGER, 1, [define to enable loggging])
-  else 
-	AC_DEFINE(DRMAA2_LOGGER, 0, [define to disable logging]) 
+	AC_DEFINE(DRMAA2_LOGGER, 1, [define to enable loggging]) 
   fi
-  AC_DEFINE(DRMAA2_LOGGER_CONFIG,"Log4cxxConfig.cfg" , [Logger config file name])
 
-  AC_MSG_RESULT([${enable_LOGGER=yes}])
+  AC_MSG_RESULT([${enable_logger=no}])
 ])

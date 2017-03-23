@@ -35,35 +35,11 @@
  *
  */
 
-#ifndef TEST_UNITTESTING_SRC_LOGGERTEST_H_
-#define TEST_UNITTESTING_SRC_LOGGERTEST_H_
+#ifndef TEST_UNITTESTING_INC_LOGGERTEST_H_
+#define TEST_UNITTESTING_INC_LOGGERTEST_H_
 #include <drmaa2.hpp>
 
 namespace drmaa2 {
-class MyLogger: public Logger {
-public:
-	virtual void logDebug(const string& file, const int linenum,
-			const string& msg) {
-	}
-	virtual void logTrace(const string& file, const int linenum,
-			const string& msg) {
-	}
-	virtual void logInfo(const string& file, const int linenum,
-			const string& msg) {
-	}
-	virtual void logWarn(const string& file, const int linenum,
-			const string& msg) {
-	}
-	virtual void logError(const string& file, const int linenum,
-			const string& msg) {
-	}
-	virtual void logFatal(const string& file, const int linenum,
-			const string& msg) {
-	}
-};
-pthread_mutex_t Logger::_posixMutex = PTHREAD_MUTEX_INITIALIZER;
-Logger *Logger::m_instance = NULL;
-
 
 class LoggerTest {
 public:
@@ -74,4 +50,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* TEST_UNITTESTING_SRC_LOGGERTEST_H_ */
+#endif /* TEST_UNITTESTING_INC_LOGGERTEST_H_ */

@@ -48,12 +48,8 @@ LoggerTest::~LoggerTest() {
 }
 
 void LoggerTest::initLogger() {
-	MyLogger *lgr = new MyLogger();
-	Logger::setLoggerInstance(lgr);
 	//TODO add code here
-	Logger::getInstance()->logDebug("test", 10, "me"); // One way to log;
 	DRMAA2_LOG_TRACE("test", 10, "me"); // Another way to log using macros;
-
 }
 
 } /* namespace drmaa2 */

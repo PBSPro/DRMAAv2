@@ -1759,6 +1759,9 @@ drmaa2_error drmaa2_register_event_notification(
 #ifdef __cplusplus
 }
 
+void drmaa2::log_msg(drmaa2::LogSeverity severity, const char *file, int line, const char *msg) {
+	// Do nothing
+}
 ;
 
 #endif

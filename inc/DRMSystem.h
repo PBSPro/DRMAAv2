@@ -39,9 +39,40 @@
 #define INC_DRMSYSTEM_H_
 
 #include "drmaa2.hpp"
+#include "ConnectionPool.h"
+extern "C" {
+#include "pbs_ifl.h"
+#include "pbs_error.h"
+}
+
 
 namespace drmaa2 {
-class Connection;
+#define CMDLINE_SELECT "1"
+#define YES "y"
+#define NO "n"
+#define EMAIL_E "e"
+#define EMAIL_B "b"
+#define OUTERR "oe"
+#define ARGUMENT_XMLSTART "<jsdl-hpcpa:Argument>"
+#define ARGUMENT_XMLEND "</jsdl-hpcpa:Argument>"
+#define SELECT "select"
+#define WALLTIME "walltime"
+#define CPUTIME "cput"
+#define ARCH "arch"
+#define OS_LINUX "linux"
+#define CMD_SUSPEND "suspend"
+#define CMD_HOLD "hold"
+#define CMD_RESUME "resume"
+#define NCPUS "ncpus"
+#define MEM "mem"
+
+#define ATTRL struct attrl
+#define OPERATION enum batch_op
+#define ADD_NODE(head_, node_) {\
+	node_->next = head_;\
+	head_ = node_;\
+}
+
 /**
  * @class DRMSystem
  * @brief An interface to DRMS system. Defines DRMS functionality

@@ -40,7 +40,12 @@
 #include <cppunit/TestAssert.h>
 #include <ConnectionPool.h>
 #include <ConnectionPoolTest.h>
+#include <PBSProSystem.h>
+#include "drmaa2.hpp"
+#include <string>
 
+
+using namespace drmaa2;
 using namespace std;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ConnectionPoolTest);
@@ -89,4 +94,48 @@ void ConnectionPoolTest::TestConnectionPool() {
 	ConnectionPool::getInstance()->reconnectConnection(*pbtstRel);
 	delete pbtstRel;
 	ConnectionPool::getInstance()->clearConnectionPool();
+        Connection *pbtestfin = new PBSConnection(pbs_default(), 0, 0);
+        ConnectionPool *tmpfin = ConnectionPool::getInstance();
+        const Connection &pbstmpFds = tmpfin->addConnection(*pbtestfin);
+        DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
+        drms->connect(*pbtestfin);
+        Connection *tmpdelete = pbtestfin->clone();
+        delete tmpdelete;
+        QueueInfoList tst = drms->getAllQueues(*pbtestfin);
+        cout<<tst.front().name;
+        JobTemplate jt_;
+        jt_.submitAsHold = false;
+        jt_.minPhysMemory = 10;
+        jt_.jobName.assign("TESTJOB");
+        jt_.remoteCommand.assign("/bin/sleep");
+        jt_.args.push_back("1000");
+        jt_.queueName.assign("workq");
+        jt_.minSlots = 1;
+        jt_.priority = 0;
+        jt_.accountingId.assign("DRMAA2JOB");
+        jt_.email.push_back("user@drmaa2.com");
+        jt_.emailOnStarted = 0;
+        jt_.emailOnTerminated = 0;
+        jt_.startTime = time(0);
+        string s1, s2;
+        s1.assign("TestVar");
+        s2.assign("TestVal");
+        jt_.jobEnvironment.insert(pair<string, string>(s1, s2));
+        jt_.joinFiles = 1;
+        //jt_.machineOS = LINUX;
+        jt_.rerunnable = 0;
+        s1.assign(DRMAA2_WALLCLOCK_TIME);
+        s2.assign("01:00:00");
+        jt_.resourceLimits.insert(pair<string, string>(s1, s2));
+        Job* tmpjid = drms->runJob(*pbtestfin, jt_);
+        sleep(2);
+        drms->suspend(*pbtestfin, *tmpjid);
+        sleep(10);
+        drms->resume(*pbtestfin, *tmpjid);
+        sleep(10);
+        drms->hold(*pbtestfin, *tmpjid);
+        sleep(10);
+        drms->release(*pbtestfin, *tmpjid);
+	sleep(10);
+	drms->terminate(*pbtestfin, *tmpjid);
 }

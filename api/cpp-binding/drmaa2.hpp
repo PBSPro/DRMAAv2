@@ -43,6 +43,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <map>
 
 #ifdef DRMAA2_DEBUG
 void drmaa2_cpptest();
@@ -155,6 +156,18 @@ enum CpuArchitecture {
 enum DrmaaEvent {
 	NEW_STATE, MIGRATED, ATTRIBUTE_CHANGE
 };
+
+/**
+ * DRMAA2 root specification predefined string constants
+ */
+extern const char *const DRMAA2_CORE_FILE_SIZE;
+extern const char *const DRMAA2_CPU_TIME;
+extern const char *const DRMAA2_DATA_SIZE;
+extern const char *const DRMAA2_FILE_SIZE;
+extern const char *const DRMAA2_OPEN_FILES;
+extern const char *const DRMAA2_STACK_SIZE;
+extern const char *const DRMAA2_VIRTUAL_MEMORY;
+extern const char *const DRMAA2_WALLCLOCK_TIME;
 
 typedef list<string> Dictionary;
 typedef list<string> StringList;
@@ -293,10 +306,10 @@ struct JobTemplate {
 	vector<string> args; /*!< Job arguments */
 	bool submitAsHold; /*!< Flag indicating job to be submitted but not to run*/
 	bool rerunnable; /*!< Flag indicating job is rerunnable or not*/
-	Dictionary jobEnvironment; /*!< List of job envs*/
+	map<string, string> jobEnvironment; /*!< List of job envs*/
 	string workingDirectory; /*!< Jobs working directory*/
 	string jobCategory; /*!< Job Category*/
-	set<string> email; /*!< Email id */
+	list<string> email; /*!< Email id */
 	bool emailOnStarted; /*!< Flag indicating whether to send mail on start or not */
 	bool emailOnTerminated; /*!< Flag indicating whether to send mail on end or not */
 	string jobName; /*!< User defined job */
@@ -315,9 +328,9 @@ struct JobTemplate {
 	CpuArchitecture machineArch; /*!< CPU architecture in which job should run*/
 	time_t startTime; /*!< When to start job*/
 	time_t deadlineTime; /*!< Dead line at which job should finish*/
-	Dictionary stageInFiles; /*!< Stage in files*/
-	Dictionary stageOutFiles; /*!< Stage out files*/
-	Dictionary resourceLimits; /*!< Resource limits*/
+	map<string, string> stageInFiles; /*!< Stage in files*/
+	map<string, string> stageOutFiles; /*!< Stage out files*/
+	map<string, string> resourceLimits; /*!< Resource limits*/
 	string accountingId; /*!< Account id*/
 };
 

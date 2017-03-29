@@ -31,11 +31,24 @@ install:
     - ${DOCKER_EXEC} zypper -n ref
     - ${DOCKER_EXEC} wget https://raw.githubusercontent.com/PBSPro/pbspro/master/pbspro.spec
     - ${DOCKER_EXEC} /bin/sh -c "zypper -n install \$(rpmspec --buildrequires -q pbspro.spec)"
-    - ${DOCKER_EXEC} /bin/sh -c 'rpm -ivh  openSUSE_13.2/pbspro-server-14.1.0-13.1.x86_64.rpm'
-    - ${DOCKER_EXEC} /etc/init.d/pbs start
-    - ${DOCKER_EXEC} /opt/pbs/bin/qstat --version
+    - ${DOCKER_EXEC} /bin/sh -c 'zypper -n --no-gpg-checks install  openSUSE_13.2/pbspro-server-14.1.0-13.1.x86_64.rpm'
+    - ${DOCKER_EXEC} /bin/sed -i.bak 's/^\(PBS_START_MOM=\).*/\11/' /etc/pbs.conf
+    - ${DOCKER_EXEC} /opt/pbs/libexec/pbs_init.d start
+    - ${DOCKER_EXEC} /bin/sh -c '/bin/echo "\$logevent 0xffffffff" >> /var/spool/pbs/mom_priv/config'
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "s s log_events=2047"
+    - ${DOCKER_EXEC} /opt/pbs/libexec/pbs_init.d restart
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "s s managers += root@*"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "s s acl_roots += root@*"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "s s scheduling = 1"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "s s job_history_enable = 1"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "p s"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "d n @default"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qmgr -c "c n testdrmaa"
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/pbsnodes -av
+    - ${DOCKER_EXEC} /bin/sh -c 'while true;do state=`/opt/pbs/bin/pbsnodes -av | grep state | cut -d'=' -f2`; if [ $state = "free" ]; then break; else echo $state; sleep 1; fi; done'
+    - ${DOCKER_EXEC_TTY} /opt/pbs/bin/qstat
     - ${DOCKER_EXEC} ./autogen.sh
     - ${DOCKER_EXEC} ./configure
     - ${DOCKER_EXEC} make
-    - ${DOCKER_EXEC} ./test/unittesting/src/test_drmaa
+    - ${DOCKER_EXEC_TTY} ./test/unittesting/src/test_drmaa
 script: true

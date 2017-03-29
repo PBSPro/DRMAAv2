@@ -60,6 +60,8 @@ class PBSProSystem: public DRMSystem {
 	 */
 	friend Singleton<DRMSystem, PBSProSystem> ;
 private:
+	static pthread_mutex_t _posixMutex;
+
 	/**
 	 * @brief Default Constructor
 	 */
@@ -87,11 +89,11 @@ public:
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void connect(Connection& connection_) throw () = 0;
+	virtual void connect(Connection& connection_) throw ();
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void disconnect(const Connection& connection_) throw () = 0;
+	virtual void disconnect(const Connection& connection_) throw ();
 	/**
 	 * @brief overridden method from DRMSystem
 	 */

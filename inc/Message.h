@@ -42,6 +42,10 @@
 
 #define DENIED_BY_DRMS_SHORT  "DeniedByDrmsException"
 #define DENIED_BY_DRMS_LONG "Connection refused by DRMS"
+#define DRMS_SERVER_NULL "DRMS Server name not valid"
+#define DRMS_NO_CONNECTS "DRMS Connection full"
+#define DRMS_JOB_SUBMIT_ERROR "Error submitting job"
+#define DRMS_CONN_AUTHFAIL "DRMS Connection Authentication Failed"
 #define DRM_COMM_SHORT  "DrmCommunicationException"
 #define DRM_COMM_LONG "Communication error with DRMS"
 #define IMPL_SPEC_SHORT  "ImplementationSpecificException"
@@ -64,6 +68,7 @@
 #define UN_SUPPORTED_ATTR_LONG "Attribute is not supported"
 #define UN_SUPPORTED_OP_SHORT  "UnsupportedOperationException"
 #define UN_SUPPORTED_OP_LONG "Operation is not supported"
+#define ATTR_NOT_FOUND "Attribute not found"
 
 using namespace std;
 namespace drmaa2 {

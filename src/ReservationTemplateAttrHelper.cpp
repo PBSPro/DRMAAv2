@@ -34,28 +34,16 @@
  * trademark licensing policies.
  *
  */
-
+#include "drmaa2.hpp"
 #include "DRMSystem.h"
+#include "AttrHelper.h"
+#include "ReservationTemplateAttrHelper.h"
 
 namespace drmaa2 {
 
-//TODO: Will be moved to drmaa2.cpp once implemented
-const char *const DRMAA2_CORE_FILE_SIZE = "CORE_FILE_SIZE";
-const char *const DRMAA2_CPU_TIME       = "DRMAA2_CPU_TIME";
-const char *const DRMAA2_DATA_SIZE      = "DRMAA2_DATA_SIZE";
-const char *const DRMAA2_FILE_SIZE      = "DRMAA2_FILE_SIZE";
-const char *const DRMAA2_OPEN_FILES     = "DRMAA2_OPEN_FILES";
-const char *const DRMAA2_STACK_SIZE     = "DRMAA2_STACK_SIZE";
-const char *const DRMAA2_VIRTUAL_MEMORY = "DRMAA2_VIRTUAL_MEMORY";
-const char *const DRMAA2_WALLCLOCK_TIME = "DRMAA2_WALLCLOCK_TIME";
-
-DRMSystem::DRMSystem() {
-	// TODO Auto-generated constructor stub
-
+ATTRL* ReservationTemplateAttrHelper::parseTemplate(void* template_) {
+	return _attrList;
+}
 }
 
-DRMSystem::~DRMSystem() {
-	// TODO Auto-generated destructor stub
-}
 
-} /* namespace drmaa2 */

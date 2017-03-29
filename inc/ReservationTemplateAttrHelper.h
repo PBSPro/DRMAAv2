@@ -35,27 +35,36 @@
  *
  */
 
-#include "DRMSystem.h"
+#ifndef INC_RESERVATIONTEMPLATEATTRHELPER_H
+#define INC_RESERVATIONTEMPLATEATTRHELPER_H
+
+#include "drmaa2.hpp"
+#include "AttrHelper.h"
 
 namespace drmaa2 {
 
-//TODO: Will be moved to drmaa2.cpp once implemented
-const char *const DRMAA2_CORE_FILE_SIZE = "CORE_FILE_SIZE";
-const char *const DRMAA2_CPU_TIME       = "DRMAA2_CPU_TIME";
-const char *const DRMAA2_DATA_SIZE      = "DRMAA2_DATA_SIZE";
-const char *const DRMAA2_FILE_SIZE      = "DRMAA2_FILE_SIZE";
-const char *const DRMAA2_OPEN_FILES     = "DRMAA2_OPEN_FILES";
-const char *const DRMAA2_STACK_SIZE     = "DRMAA2_STACK_SIZE";
-const char *const DRMAA2_VIRTUAL_MEMORY = "DRMAA2_VIRTUAL_MEMORY";
-const char *const DRMAA2_WALLCLOCK_TIME = "DRMAA2_WALLCLOCK_TIME";
+class ReservationTemplateAttrHelper : public AttrHelper {
+public:
+        /**
+	 * @brief default constructor
+	 *
+	 */
+	ReservationTemplateAttrHelper() {
+	}
 
-DRMSystem::DRMSystem() {
-	// TODO Auto-generated constructor stub
+        /**
+	 * @brief default destructor
+	 *
+	 */
+	virtual ~ReservationTemplateAttrHelper() {
+	}
+
+	/**
+	 * @brief method to parse reservation template.
+	 */
+	ATTRL* parseTemplate(void* template_);
+};
 
 }
 
-DRMSystem::~DRMSystem() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace drmaa2 */
+#endif

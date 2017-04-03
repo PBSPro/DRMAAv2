@@ -1,0 +1,41 @@
+language: c++
+sudo: required
+services:
+    - docker
+before_install:
+    - .github/runchecks
+    - docker pull opensuse
+    - docker run -it -d -h testdrmaa.pbspro.com --name testdrmaa -v `pwd`:`pwd` --privileged -w `pwd` opensuse /bin/sh
+    - docker ps -a
+    - export DOCKER_EXEC_TTY="docker exec -it testdrmaa"
+    - export DOCKER_EXEC="docker exec -i testdrmaa"
+    - export DOCKER_TESTDEV_IP="$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' testdrmaa)"
+    - ${DOCKER_EXEC} /bin/sh -c "echo '${DOCKER_TESTDEV_IP}     testdrmaa' >> /etc/hosts"
+    - ${DOCKER_EXEC} cat /etc/hosts
+install:
+    - export OS_NAME=$(${DOCKER_EXEC} cat /etc/os-release | awk -F[=\"] '/^NAME=/ {print $3}')
+    - export OS_VERSION=$(${DOCKER_EXEC} cat /etc/os-release | awk -F[=\"] '/VERSION=/ {print $3}')
+    - export OS_NAME_VERSION=${OS_NAME// /_}_${OS_VERSION// /_}
+    - ${DOCKER_EXEC} zypper -n ar -f -G http://download.opensuse.org/repositories/devel:/tools/${OS_NAME_VERSION}/devel:tools.repo
+    - ${DOCKER_EXEC} zypper -n install lynx
+    - ${DOCKER_EXEC} zypper -n install wget
+    - ${DOCKER_EXEC} zypper -n install unzip
+    - ${DOCKER_EXEC} zypper -n install rpmdevtools
+    - ${DOCKER_EXEC} zypper -n install postgresql-server
+    - ${DOCKER_EXEC} zypper -n install sendmail
+    - ${DOCKER_EXEC} zypper -n install gcc-c++
+    - ${DOCKER_EXEC} zypper -n install cppunit-devel
+    - ${DOCKER_EXEC} lynx -dump http://pbspro.org/Download.aspx | awk '/http/{print $2}' | grep OpenSUSE_13.2.zip > link
+    - ${DOCKER_EXEC} wget `cat link`
+    - ${DOCKER_EXEC} unzip openSUSE_13.2.zip
+    - ${DOCKER_EXEC} zypper -n ref
+    - ${DOCKER_EXEC} wget https://raw.githubusercontent.com/PBSPro/pbspro/master/pbspro.spec
+    - ${DOCKER_EXEC} /bin/sh -c "zypper -n install \$(rpmspec --buildrequires -q pbspro.spec)"
+    - ${DOCKER_EXEC} /bin/sh -c 'rpm -ivh  openSUSE_13.2/pbspro-server-14.1.0-13.1.x86_64.rpm'
+    - ${DOCKER_EXEC} /etc/init.d/pbs start
+    - ${DOCKER_EXEC} /opt/pbs/bin/qstat --version
+    - ${DOCKER_EXEC} ./autogen.sh
+    - ${DOCKER_EXEC} ./configure
+    - ${DOCKER_EXEC} make
+    - ${DOCKER_EXEC} ./test/unittesting/src/test_drmaa
+script: true

@@ -53,6 +53,14 @@ extern "C" {
 #include <stdio.h>
 
 /**
+ *  @brief __last_error is thread-local and Thead-safe. Setting it in one
+ *  thread  does not affect its value in any other thread.
+ */
+__thread drmaa2_error __last_error = DRMAA2_SUCCESS;
+extern __thread drmaa2_error __last_error;
+
+
+/**
  *  @brief  frees the previously allocated drmaa2_string
  *
  *  @param[in]	str - pointer to pre allocated drmaa2_string
@@ -71,8 +79,7 @@ void drmaa2_string_free(drmaa2_string * str) {
  *
  */
 drmaa2_error drmaa2_lasterror(void) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	return lasterror;
 }
 
 /**
@@ -83,8 +90,10 @@ drmaa2_error drmaa2_lasterror(void) {
  *
  */
 drmaa2_string drmaa2_lasterror_text(void) {
-	//TODO Add Code here
-	return NULL;
+	if (lasterror <= DRMAA2_UNSET_ERROR && lasterror >= DRMAA2_LASTERROR) {
+		return NULL;
+	}
+	return (char*)last_error_text[lasterror];
 }
 
 /**

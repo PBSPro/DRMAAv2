@@ -43,6 +43,9 @@ extern "C" {
 #endif
 
 #include <time.h>
+
+#define lasterror __last_error
+
 extern const char * const DRMAA2_CORE_FILE_SIZE;
 
 extern const char * const DRMAA2_CPU_TIME;
@@ -158,6 +161,23 @@ typedef enum drmaa2_error {
 } drmaa2_error;
 
 typedef char *drmaa2_string;
+
+const char *last_error_text[DRMAA2_LASTERROR+1] = {"Success",
+	"Denied by DRMS",
+	"Failed to communicating with DRMS",
+	"Try later",
+	"Session Management",
+	"Operation Timed out",
+	"Internal Error",
+	"Invalid argument",
+	"Invalid state",
+	"Invalid session",
+	"Out of resource",
+	"Unsupported attribute",
+	"Unsupported operation",
+	"Implementation specific error",
+	"Last"};
+
 
 void drmaa2_string_free(drmaa2_string *);
 

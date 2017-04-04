@@ -114,4 +114,8 @@ void SessionManagerImpl::registerEventNotification(
 	//TODO Add Code here
 }
 
+void SessionManagerImpl::initialize() {
+	// TODO Add code here
+}
+
 } /* namespace drmaa2 */

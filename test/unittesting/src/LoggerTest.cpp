@@ -35,64 +35,21 @@
  *
  */
 
-#ifndef API_CPP_BINDING_IMPLEMENTATIONSPECIFICEXCEPTION_H_
-#define API_CPP_BINDING_IMPLEMENTATIONSPECIFICEXCEPTION_H_
-
-#include "Drmaa2Exception.h"
-#include "Message.h"
-#include "SourceInfo.h"
+#include "LoggerTest.h"
 
 namespace drmaa2 {
 
-/**
- * @class ImplementationSpecificException
- * @brief Exception is generated for implementation specific errors
- */
-class ImplementationSpecificException: public Drmaa2Exception {
-public:
+LoggerTest::LoggerTest() {
+	// TODO Auto-generated constructor stub
+}
 
-	/**
-	 * @brief Constructs the exception with the specified message and source location.
-	 *
-	 * @param message - Message associated to the exception.
-	 * @param sourceInfo - Source location related to the exception.
-	 * @param errorCode - DRMS specific error code
-	 *
-	 */
-	ImplementationSpecificException(long errorCode,
-			const SourceInfo &sourceInfo = SourceInfo(),
-			const Message &message = Message(IMPL_SPEC_SHORT, IMPL_SPEC_LONG));
+LoggerTest::~LoggerTest() {
+	// TODO Auto-generated destructor stub
+}
 
-	/**
-	 * @brief default destructor
-	 *
-	 */
-	virtual ~ImplementationSpecificException() throw ();
-
-	/**
-	 * @brief Getter method for error code
-	 *
-	 * @return - errorCode_
-	 */
-	const int getErrorCode(long errorCode_) const {
-		return _errorCode;
-	}
-
-	/**
-	 * @brief Setter method for message
-	 *
-	 * @param errorCode_ - errorCode
-	 *
-	 * @return - None
-	 */
-
-	void setMessage(const long errorCode_) {
-		_errorCode = errorCode_;
-	}
-private:
-	long _errorCode; /*<! DRMS specific error code */
-};
+void LoggerTest::initLogger() {
+	//TODO add code here
+	DRMAA2_LOG_TRACE("test", 10, "me"); // Another way to log using macros;
+}
 
 } /* namespace drmaa2 */
-
-#endif /* API_CPP_BINDING_IMPLEMENTATIONSPECIFICEXCEPTION_H_ */

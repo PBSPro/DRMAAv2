@@ -86,6 +86,13 @@ public:
 	 * @brief default destructor
 	 */
 	virtual ~SessionManagerImpl();
+
+	/**
+	 * @brief overridden method from SessionManager
+	 *
+	 */
+	virtual void initialize();
+
 	/**
 	 * @brief overridden method from SessionManager
 	 */

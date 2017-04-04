@@ -56,6 +56,42 @@ using namespace std;
  */
 namespace drmaa2 {
 
+
+/**
+ * @enum LogSeverity
+ *
+ * @brief Logging Severity used by the DRMAA2.
+ * 			
+ */
+enum LogSeverity {
+	NONE,
+	TRACE,
+	DEBUG,
+	INFO,
+	WARN,
+	ERROR,
+	FATAL
+};
+
+/**
+ * @brief Logs message
+ *
+ * @param[in] severity - LogSeverity Severity of the log
+ * @param[in] file - File name from which the log was generated
+ * @param[in] line - Line number from which the log was generated
+ * @param[in] msg - Actual log msg
+ *
+ * @return None
+ */
+void log_msg(drmaa2::LogSeverity severity, const char *file, int line, const char *msg);
+
+#define DRMAA2_LOG_TRACE(file, line, msg) log_msg(drmaa2::TRACE, file, line, msg)
+#define DRMAA2_LOG_DEBUG(file, line, msg) log_msg(drmaa2::DEBUG, file, line, msg)
+#define DRMAA2_LOG_INFO(file, line, msg)  log_msg(drmaa2::INFO, file, line, msg)
+#define DRMAA2_LOG_WARN(file, line, msg)  log_msg(drmaa2::WARN, file, line, msg)
+#define DRMAA2_LOG_ERROR(file, line, msg) log_msg(drmaa2::ERROR, file, line, msg)
+#define DRMAA2_LOG_FATAL(file, line, msg) log_msg(drmaa2::FATAL, file, line, msg);
+
 typedef long TimeAmount;
 typedef time_t AbsoluteTime;
 
@@ -1016,6 +1052,11 @@ public:
 		if (m_instance == NULL) {
 			m_instance = new ImplT();
 			/*assert(m_instance!= NULL);*/
+			/**
+			 * The initialize is specific method in IfaceT
+			 * should be defined in ImplT
+			 */
+			m_instance->initialize();
 		}
 		pthread_mutex_unlock(&ImplT::_posixMutex);
 		return m_instance;
@@ -1069,7 +1110,9 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~SessionManager(void);
+	virtual ~SessionManager(void) {
+
+	}
 
 	/**
 	 * @brief Returns DRMAA implementation vendor name
@@ -1115,6 +1158,16 @@ public:
 	const Version& getDrmsVersion(void) const {
 		return drmsVersion;
 	}
+
+	/**
+	 * @brief Initialize session manager
+	 *
+	 * @param - None
+	 *
+	 * @return None
+	 *
+	 */
+	virtual void initialize() = 0;
 
 	/**
 	 * @brief Allows to test if the DRMAA implementation supports a feature

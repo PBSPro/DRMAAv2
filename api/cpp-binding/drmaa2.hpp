@@ -370,6 +370,7 @@ class OutOfResourceException;
 class UnsupportedAttributeException;
 class UnsupportedOperationException;
 class ImplementationSpecificException;
+class PBSJobImpl;
 
 /**
  * @class DrmaaReflective
@@ -406,7 +407,8 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~Job(void);
+	virtual ~Job(void) {
+	};
 
 	/**
 	 * @brief Returns Job ID
@@ -433,7 +435,7 @@ public:
 	 *
 	 * @return JobState
 	 */
-	virtual const JobState& getState(string& subState) const = 0;
+	virtual const JobState& getState(string& subState) = 0;
 
 	/**
 	 * @brief Returns JobTemplate from which Job is submitted
@@ -442,7 +444,7 @@ public:
 	 *
 	 * @return JobTemlpate
 	 */
-	virtual JobTemplate& getJobTemplate(void) const = 0;
+	virtual const JobTemplate& getJobTemplate(void) const = 0;
 
 	/**
 	 * @brief Suspends a Job
@@ -534,7 +536,7 @@ public:
 	 */
 	virtual void waitTerminated(TimeAmount& timeout_) = 0;
 };
-typedef list<Job>* JobList;
+typedef list<PBSJobImpl*> JobList;
 
 /**
  * @class JobArray

@@ -129,13 +129,16 @@ void ConnectionPoolTest::TestConnectionPool() {
         jt_.resourceLimits.insert(pair<string, string>(s1, s2));
         Job* tmpjid = drms->runJob(*pbtestfin, jt_);
         sleep(2);
-        drms->suspend(*pbtestfin, *tmpjid);
+	JobInfo _jinfo = tmpjid->getJobInfo();
+        tmpjid->suspend();
+	string substate;
+	tmpjid->getState(substate);
         sleep(10);
-        drms->resume(*pbtestfin, *tmpjid);
+	tmpjid->resume();
         sleep(10);
-        drms->hold(*pbtestfin, *tmpjid);
+	tmpjid->hold();
         sleep(10);
-        drms->release(*pbtestfin, *tmpjid);
+        tmpjid->release();
 	sleep(10);
-	drms->terminate(*pbtestfin, *tmpjid);
+	tmpjid->terminate();
 }

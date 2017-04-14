@@ -46,6 +46,7 @@
 #include "InvalidStateException.h"
 #include "ImplementationSpecificException.h"
 #include "SourceInfo.h"
+#include "PBSJobImpl.h"
 #include "pbs_ifl.h"
 #include "pbs_error.h"
 #include <stdio.h>
@@ -110,7 +111,8 @@ Job* PBSProSystem::runJob(const Connection& connection_,
 	jobIdFromDRMS_ = pbs_submit(pbsCnHolder_->getFd(), (struct attropl *) attributeList,
 			(char*) jobTemplate_.remoteCommand.c_str(), (char*) destination_.c_str(), NULL);
 	if(jobIdFromDRMS_) {
-		return (Job*)jobIdFromDRMS_; //TODO: Needs to be changed to Job object
+		string jobId_(jobIdFromDRMS_);
+		return new PBSJobImpl(jobId_, jobTemplate_);
 	} else {
 		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
 	}
@@ -119,12 +121,7 @@ Job* PBSProSystem::runJob(const Connection& connection_,
 void PBSProSystem::hold(const Connection& connection_, const Job& job_) throw () {
 	int ret_;
 	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
-	string jobId_;
-	jobId_.assign((char*) &job_); //TODO: Needs to be changed after Job object implemented
-	if (jobId_.empty())
-		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
-				Message(INVALID_ARG_SHORT));
-	ret_ = pbs_holdjob(pbsCnHolder_->getFd(), (char*)jobId_.c_str(), NULL, NULL);
+	ret_ = pbs_holdjob(pbsCnHolder_->getFd(), (char*)job_.getJobId().c_str(), NULL, NULL);
 	if(ret_ != 0)
 		throw InvalidStateException(SourceInfo(__func__,__LINE__),
 				Message(INVALID_STATE_LONG));
@@ -134,13 +131,7 @@ void PBSProSystem::suspend(const Connection& connection_,
 		const Job& job_) throw () {
 	int ret_;
 	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
-	string jobId_;
-	jobId_.assign((char*) &job_); //TODO: Needs to be changed after Job object implemented
-	if (jobId_.empty())
-		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
-				Message(INVALID_ARG_SHORT));
-
-	ret_ = pbs_sigjob(pbsCnHolder_->getFd(), (char *)jobId_.c_str(), (char *)CMD_SUSPEND, NULL);
+	ret_ = pbs_sigjob(pbsCnHolder_->getFd(), (char *)job_.getJobId().c_str(), (char *)CMD_SUSPEND, NULL);
 	if(ret_ != 0) {
 		throw InvalidStateException(SourceInfo(__func__,__LINE__),
 				Message(INVALID_STATE_LONG));
@@ -151,13 +142,7 @@ void PBSProSystem::resume(const Connection& connection_,
 		const Job& job_) throw () {
 	int ret_;
 	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
-	string jobId_;
-	jobId_.assign((char*) &job_); //TODO: Needs to be changed after Job object implemented
-	if (jobId_.empty())
-		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
-				Message(INVALID_ARG_SHORT));
-
-	ret_ = pbs_sigjob(pbsCnHolder_->getFd(), (char *)jobId_.c_str(), (char *)CMD_RESUME, NULL);
+	ret_ = pbs_sigjob(pbsCnHolder_->getFd(), (char *)job_.getJobId().c_str(), (char *)CMD_RESUME, NULL);
 	if(ret_ != 0) {
 		throw InvalidStateException(SourceInfo(__func__,__LINE__),
 				Message(INVALID_STATE_LONG));
@@ -168,12 +153,7 @@ void PBSProSystem::release(const Connection& connection_,
 		const Job& job_) throw () {
 	int ret_;
 	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
-	string jobId_;
-	jobId_.assign((char*) &job_); //TODO: Needs to be changed after Job object implemented
-	if (jobId_.empty())
-		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
-				Message(INVALID_ARG_SHORT));
-	ret_ = pbs_rlsjob(pbsCnHolder_->getFd(), (char*)jobId_.c_str(), NULL, NULL);
+	ret_ = pbs_rlsjob(pbsCnHolder_->getFd(), (char*)job_.getJobId().c_str(), NULL, NULL);
 	if(ret_ != 0) {
 		throw InvalidStateException(SourceInfo(__func__,__LINE__),
 				Message(INVALID_STATE_LONG));
@@ -184,12 +164,7 @@ void PBSProSystem::terminate(const Connection& connection_,
 		const Job& job_) throw () {
 	int ret_;
 	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
-	string jobId_;
-	jobId_.assign((char*) &job_); //TODO: Needs to be changed after Job object implemented
-	if (jobId_.empty())
-		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
-				Message(INVALID_ARG_SHORT));
-	ret_ = pbs_deljob(pbsCnHolder_->getFd(), (char*)jobId_.c_str(), NULL);
+	ret_ = pbs_deljob(pbsCnHolder_->getFd(), (char*)job_.getJobId().c_str(), NULL);
 	if(ret_ != 0) {
 		throw InvalidStateException(SourceInfo(__func__,__LINE__),
 				Message(INVALID_STATE_LONG));
@@ -203,8 +178,54 @@ void PBSProSystem::reap(const Connection& connection_, const Job& job_) throw ()
 
 JobState PBSProSystem::state(const Connection& connection_,
 		const Job& job_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret_;
+	char *runCount_;
+	JobTemplateAttrHelper attrParse_;
+	JobState jobState_;
+	struct batch_status *batchResponse_ = NULL;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	attrParse_.setAttribute((char *)ATTR_state, (char *)"");
+	attrParse_.setAttribute((char *)ATTR_runcount, (char *)"");
+	ATTRL *attributeList_ = attrParse_.getAttributeList();
+	batchResponse_ = pbs_statjob(pbsCnHolder_->getFd(), (char *)job_.getJobId().c_str(),
+				 attributeList_, (char *)"x");
+	if(batchResponse_) {
+		switch(batchResponse_->attribs->value[0]) {
+			case 'R':
+				jobState_ = RUNNING;
+				break;
+			case 'Q':
+				jobState_ = QUEUED;
+				break;
+			case 'S':
+				jobState_ = SUSPENDED;
+				break;
+			case 'H':
+				jobState_ = QUEUED_HELD;
+				break;
+			case 'F':
+				jobState_ = DONE;
+				break;
+			default:
+				jobState_ = UNDETERMINED;
+				break;
+		}
+		if(jobState_ == QUEUED || jobState_ == QUEUED_HELD) {
+			if(batchResponse_->attribs->next) {
+				runCount_ = batchResponse_->attribs->next->value;
+				if(runCount_) {
+					if(atol(runCount_) > 0) {
+						if(jobState_ == QUEUED)
+							jobState_ = REQUEUED;
+						else if(jobState_ == QUEUED_HELD)
+							jobState_ = REQUEUED_HELD;
+					}
+				}
+			}
+		}
+		pbs_statfree(batchResponse_);
+	}
+	return jobState_;
 }
 
 Job* PBSProSystem::getJob(const Connection& connection_,
@@ -281,8 +302,48 @@ ReservationList PBSProSystem::getAllReservations(
 
 JobList PBSProSystem::getJobs(const Connection& connection_,
 		const JobInfo& filter_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	JobList _jList;
+	list<string> _allJobs;
+	struct batch_status *batchRsp_ = (struct batch_status *) 0,
+			*tmpBatchRsp_ = (struct batch_status *) 0;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	batchRsp_ = pbs_statjob(pbsCnHolder_->getFd(), NULL, NULL, (char *)"x");
+	tmpBatchRsp_ = batchRsp_;
+	while(tmpBatchRsp_) {
+		if (tmpBatchRsp_->name != NULL) {
+                        _allJobs.push_back(string(tmpBatchRsp_->name));
+                }
+                tmpBatchRsp_ = tmpBatchRsp_->next;
+	}
+	for (list<string>::iterator iterator = _allJobs.begin();
+		iterator != _allJobs.end(); ++iterator) {
+		PBSJobImpl *_job = new PBSJobImpl(*iterator);
+		JobInfo _jInfo = _job->getJobInfo();
+		if(!filter_.jobId.empty() && _jInfo.jobId != filter_.jobId)
+			continue;
+		if (!filter_.annotation.empty() && _jInfo.annotation != filter_.annotation)
+			continue;
+		if(_jInfo.exitStatus != filter_.exitStatus)
+			continue;
+		if(_jInfo.jobState != filter_.jobState)
+			continue;
+		if(!filter_.annotation.empty() && _jInfo.submissionMachine != filter_.submissionMachine)
+			continue;
+		if(_jInfo.cpuTime != filter_.cpuTime)
+			continue;
+		if(difftime(_jInfo.wallclockTime, filter_.wallclockTime) > 0)
+			continue;
+		if(difftime(_jInfo.submissionTime, filter_.submissionTime) > 0)
+			continue;
+		if(difftime(_jInfo.dispatchTime, filter_.dispatchTime) > 0)
+			continue;
+		if(difftime(_jInfo.finishTime, filter_.finishTime) > 0)
+			continue;
+		_jList.push_back(_job);
+	}
+	if(batchRsp_)
+		pbs_statfree(batchRsp_);
+	return _jList;
 }
 
 MachineInfoList PBSProSystem::getAllMachines(

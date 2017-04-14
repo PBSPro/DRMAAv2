@@ -74,8 +74,7 @@ void ConnectionPool::returnConnection(const Connection& object) {
 	if(_usedConnections.size() > 0) {
 		for(list<Connection*>::iterator it = _usedConnections.begin(); it != _usedConnections.end(); ++it) {
 			if(&object == *it) {
-				PBSConnection *_pbsCnHolder = static_cast<PBSConnection*>(*it);
-				_freeConnections.push_back(_pbsCnHolder);
+				_freeConnections.push_back(*it);
 				_usedConnections.erase(it);
 				break;
 			}

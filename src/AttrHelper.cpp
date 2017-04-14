@@ -96,7 +96,7 @@ void AttrHelper::setAttribute(char* attrName_, char* attrVal_, OPERATION op_) {
 
 }
 
-char* AttrHelper::getAttribute(char* attrName_, char* attrVal_) throw() {
+char* AttrHelper::getAttribute(char* attrName_, char* attrVal_) {
 	ATTRL *attrTmp_;
 
 	attrTmp_ = _attrList;
@@ -113,8 +113,7 @@ char* AttrHelper::getAttribute(char* attrName_, char* attrVal_) throw() {
 		}
 		attrTmp_ = attrTmp_->next;
 	}
-	throw Drmaa2Exception(Message(ATTR_NOT_FOUND),
-			SourceInfo(__func__, __LINE__));
+	return NULL;
 }
 
 void AttrHelper::setResource(char* resName_, char* resVal_) {

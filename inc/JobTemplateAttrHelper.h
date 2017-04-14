@@ -65,6 +65,12 @@ public:
 	 */
 	JobTemplateAttrHelper() {
 	}
+	/**
+	 * @brief parameterised constructor
+	 *
+	 */
+	JobTemplateAttrHelper(ATTRL* attrList_) : AttrHelper(attrList_) {
+	}
 
 	/**
 	 * @brief default destructor

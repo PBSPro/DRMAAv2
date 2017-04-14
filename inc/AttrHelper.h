@@ -39,6 +39,7 @@
 #define INC_ATTRHELPER_H
 
 #include "drmaa2.hpp"
+#include <Drmaa2Exception.h>
 extern "C" {
 #include "pbs_ifl.h"
 #include "pbs_error.h"
@@ -59,6 +60,12 @@ public:
 	 */
 	AttrHelper() {
 		_attrList = NULL;
+	}
+	/**
+	 * @brief parameterised constructor
+	 *
+	 */
+	AttrHelper(ATTRL* attrList_) : _attrList(attrList_) {
 	}
 	/**
 	 * @brief default destructor
@@ -96,11 +103,10 @@ public:
 	 * @param[in] attrName_ - attribute name
 	 * 	      attrVal_  - attribute value
 	 *
-	 * @throw Drmaa2_Exception - Attribute not found exception
-	 *
 	 * @return  char* - Pointer to value
+	 * 	    NULL  - If value not found
 	 */
-	virtual char* getAttribute(char *attrName_, char *attrVal_) throw();
+	virtual char* getAttribute(char *attrName_, char *attrVal_);
 	/**
 	 * @brief Method to get entry from attribute list
 	 *
@@ -112,6 +118,12 @@ public:
 	 * @brief pure virtual method to override for different templates.
 	 */
 	virtual ATTRL* parseTemplate(void* template_) = 0;
+	/**
+	 * @brief Method to get attribute list
+	 *
+	 * @return  attrl - pointer to attribute List
+	 */
+	virtual ATTRL* getAttributeList() { return _attrList;};
 };
 
 }

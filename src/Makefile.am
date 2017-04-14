@@ -59,7 +59,8 @@ libsrc_la_SOURCES= Session.cpp  \
 		   ConnectionPool.cpp \
                    AttrHelper.cpp \
                    JobTemplateAttrHelper.cpp \
-                   ReservationTemplateAttrHelper.cpp
+                   ReservationTemplateAttrHelper.cpp \
+                   PBSJobImpl.cpp
 
 libsrc_la_CPPFLAGS =    -I$(top_srcdir)/inc -I$(top_srcdir)/api/cpp-binding -I$(top_srcdir)/inc -I$(drms_inc_dir)
 

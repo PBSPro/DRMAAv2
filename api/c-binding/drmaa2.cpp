@@ -61,7 +61,8 @@ extern "C" {
  *
  */
 void drmaa2_string_free(drmaa2_string * str) {
-	//TODO Add Code here
+	free(*str);
+	*str = NULL;
 }
 
 /**
@@ -95,7 +96,7 @@ drmaa2_string drmaa2_lasterror_text(void) {
  *
  */
 void drmaa2_string_list_default_callback(void **value) {
-	//TODO Add Code here
+	drmaa2_string_free((drmaa2_string *)value);
 }
 
 /**
@@ -107,7 +108,7 @@ void drmaa2_string_list_default_callback(void **value) {
  *
  */
 void drmaa2_j_list_default_callback(void **value) {
-	//TODO Add Code here
+	drmaa2_j_free((drmaa2_j *)value);
 }
 
 /**
@@ -119,7 +120,7 @@ void drmaa2_j_list_default_callback(void **value) {
  *
  */
 void drmaa2_queueinfo_list_default_callback(void **value) {
-	//TODO Add Code here
+	drmaa2_queueinfo_free((drmaa2_queueinfo *)value);
 }
 
 /**
@@ -131,7 +132,7 @@ void drmaa2_queueinfo_list_default_callback(void **value) {
  *
  */
 void drmaa2_machineinfo_list_default_callback(void **value) {
-	//TODO Add Code here
+	drmaa2_machineinfo_free((drmaa2_machineinfo *)value);
 }
 
 /**
@@ -143,7 +144,7 @@ void drmaa2_machineinfo_list_default_callback(void **value) {
  *
  */
 void drmaa2_slotinfo_list_default_callback(void **value) {
-	//TODO Add Code here
+	drmaa2_slotinfo_free((drmaa2_slotinfo *)value);
 }
 
 /**
@@ -155,7 +156,7 @@ void drmaa2_slotinfo_list_default_callback(void **value) {
  *
  */
 void drmaa2_r_list_default_callback(void **value) {
-	//TODO Add Code here
+	drmaa2_r_free((drmaa2_r *)value);
 }
 
 /**
@@ -169,8 +170,16 @@ void drmaa2_r_list_default_callback(void **value) {
  */
 drmaa2_list drmaa2_list_create(const drmaa2_listtype t,
 		const drmaa2_list_entryfree callback) {
-	//TODO Add Code here
-	return NULL;
+	drmaa2_list l = NULL;
+
+	l = (drmaa2_list) malloc(sizeof(drmaa2_list_s));
+	if (l != NULL) {
+		l->free_callback = callback;
+		l->type = t;
+		l->size = 0;
+		l->head = NULL;
+	}
+	return l;
 }
 
 /**
@@ -182,23 +191,44 @@ drmaa2_list drmaa2_list_create(const drmaa2_listtype t,
  *
  */
 void drmaa2_list_free(drmaa2_list * l) {
-	//TODO Add Code here
+	if (*l == NULL)
+		return;
+	drmaa2_item head = (drmaa2_item) (*l)->head;
+	drmaa2_item item;
+	while (head != NULL) {
+		item = head;
+		head = item->next;
+		if ((*l)->free_callback != NULL)
+			(*l)->free_callback((void **) &(item->data));
+		free(item);
+	}
+	free(*l);
+	*l = NULL;
 }
 
 /**
  *  @brief  gets the element form a particular position of the list
  *
  *  @param[in]	l - Pointer to drmaa list
- *  @param[in]	pos - position from whcih the data has to be taken
+ *  @param[in]	pos - position from which the data has to be taken
 
  *  @return
- *  	void* - pointer to the element retunred as void*
+ *  	void* - pointer to the element returned as void*
  *  	NULL  - If the position is not valid
  *
  */
 const void *drmaa2_list_get(const drmaa2_list l, const long pos) {
-	//TODO Add Code here
-	return NULL;
+	if (l == NULL)
+		return NULL;
+
+	if (pos < 0 || pos >= l->size)
+		return NULL;
+
+	drmaa2_item current = (drmaa2_item) l->head;
+	long i;
+	for (i = 0; i < pos; i++)
+		current = current->next;
+	return current->data;
 }
 
 /**
@@ -209,13 +239,25 @@ const void *drmaa2_list_get(const drmaa2_list l, const long pos) {
 
  *  @return
  *  	drmaa2_error - DRMAA2_INVALID_ARGUMENT
- *  				 - DRMAA2_OUT_OF_RESOURCE
- *					 - DRMAA2_SUCCESS
+ *  				 - DRMAA2_INTERNAL
+ *				 - DRMAA2_SUCCESS
  *
  */
 drmaa2_error drmaa2_list_add(drmaa2_list l, const void *value) {
-	//TODO Add Code here
+	if (l == NULL)
+		return DRMAA2_INVALID_ARGUMENT;
+
+	drmaa2_item item;
+	if ((item = (drmaa2_item) malloc(sizeof(drmaa2_item))) == NULL) {
+		return DRMAA2_INTERNAL;
+	}
+	item->data = value;
+	item->next = (drmaa2_item)l->head;
+	l->head = item;
+	l->size++;
+
 	return DRMAA2_SUCCESS;
+
 }
 
 /**
@@ -229,7 +271,35 @@ drmaa2_error drmaa2_list_add(drmaa2_list l, const void *value) {
  *
  */
 drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos) {
-	//TODO Add Code here
+	if (l == NULL)
+		return DRMAA2_INVALID_ARGUMENT;
+
+	if (pos < 0 || pos >= l->size)
+		return DRMAA2_INVALID_ARGUMENT;
+
+	drmaa2_item current = (drmaa2_item) l->head;
+	if (pos == 0) {
+		drmaa2_item prev = current;
+		l->head = prev->next;
+		l->size--;
+		if (l->free_callback != NULL)
+			l->free_callback((void **) prev->data);
+		free(prev);
+
+		return DRMAA2_SUCCESS;
+	}
+
+	long i;
+	for (i = 0; i < (pos - 1); i++)
+		current = current->next;
+
+	drmaa2_item prev = current->next;
+	current->next = prev->next;
+	l->size--;
+	if (l->free_callback != NULL)
+		l->free_callback((void **) prev->data);
+	free(prev);
+
 	return DRMAA2_SUCCESS;
 }
 
@@ -244,9 +314,9 @@ drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos) {
  *
  */
 long drmaa2_list_size(const drmaa2_list l) {
-	//TODO Add Code here
-	return -1;
-
+	if (l == NULL)
+		return -1;
+	return l->size;
 }
 
 /**

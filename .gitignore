@@ -53,6 +53,7 @@ GTAGS
 
 # Build directory
 target/
+test/unittesting/src/.libs/
 
 # From automake/autoconf
 autom4te.cache/
@@ -84,5 +85,5 @@ Makefile
 *.deps
 
 # Generated binaries
-
+test/unittesting/src/test_drmaa
 

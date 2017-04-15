@@ -163,9 +163,33 @@ void drmaa2_string_free(drmaa2_string *);
 
 drmaa2_error drmaa2_lasterror(void);
 
-drmaa2_string drmaa2_lasterror_text(void); /* forward */
+drmaa2_string drmaa2_lasterror_text(void);
 
-struct drmaa2_list_s;
+typedef void (*drmaa2_list_entryfree)(void **value);
+
+typedef enum drmaa2_listtype {
+	DRMAA2_UNSET_LISTTYPE = -1,
+	DRMAA2_STRINGLIST = 0,
+	DRMAA2_JOBLIST = 1,
+	DRMAA2_QUEUEINFOLIST = 2,
+	DRMAA2_MACHINEINFOLIST = 3,
+	DRMAA2_SLOTINFOLIST = 4,
+	DRMAA2_RESERVATIONLIST = 5
+}drmaa2_listtype;
+
+typedef struct drmaa2_item_s {
+	const void *data;
+	struct drmaa2_item_s *next;
+}drmaa2_list_item_s;
+
+typedef drmaa2_item_s *drmaa2_item;
+
+typedef struct drmaa2_list_s {
+	drmaa2_list_entryfree free_callback;
+	drmaa2_listtype type;
+	long size;
+	void *head;
+}drmaa2_list_s;
 
 typedef struct drmaa2_list_s *drmaa2_list;
 
@@ -180,18 +204,6 @@ typedef struct drmaa2_list_s *drmaa2_machineinfo_list;
 typedef struct drmaa2_list_s *drmaa2_slotinfo_list;
 
 typedef struct drmaa2_list_s *drmaa2_r_list;
-
-typedef enum drmaa2_listtype {
-	DRMAA2_UNSET_LISTTYPE = -1,
-	DRMAA2_STRINGLIST = 0,
-	DRMAA2_JOBLIST = 1,
-	DRMAA2_QUEUEINFOLIST = 2,
-	DRMAA2_MACHINEINFOLIST = 3,
-	DRMAA2_SLOTINFOLIST = 4,
-	DRMAA2_RESERVATIONLIST = 5
-} drmaa2_listtype;
-
-typedef void (*drmaa2_list_entryfree)(void **value);
 
 void drmaa2_string_list_default_callback(void **value);
 

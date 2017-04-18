@@ -35,7 +35,7 @@
  *
  */
 
-#include "InvalidArgumentException.h"
+#include <InvalidArgumentException.h>
 
 namespace drmaa2 {
 

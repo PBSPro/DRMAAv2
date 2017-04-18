@@ -34,22 +34,12 @@
  * trademark licensing policies.
  *
  */
-#include "drmaa2.hpp"
-#include "DRMSystem.h"
-#include "AttrHelper.h"
-#include "Message.h"
-#include "SourceInfo.h"
-#include "Drmaa2Exception.h"
-#include "OutOfResourceException.h"
-extern "C" {
-#include "pbs_ifl.h"
-#include "pbs_error.h"
-}
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sstream>
-#include <algorithm>
+
+#include <AttrHelper.h>
+#include <OutOfResourceException.h>
+#include <SourceInfo.h>
+#include <cstring>
+#include <new>
 
 namespace drmaa2 {
 

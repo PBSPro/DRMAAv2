@@ -35,7 +35,7 @@
  *
  */
 
-#include "DeniedByDrmsException.h"
+#include <DeniedByDrmsException.h>
 
 namespace drmaa2 {
 

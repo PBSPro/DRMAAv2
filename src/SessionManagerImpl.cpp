@@ -35,7 +35,16 @@
  *
  */
 
+#include <ConnectionPool.h>
+#include <InternalException.h>
+#include <Message.h>
+#include <pbs_ifl.h>
+#include <pthread.h>
+#include <PBSConnection.h>
 #include <SessionManagerImpl.h>
+#include <SourceInfo.h>
+#include <exception>
+#include <sstream>
 
 namespace drmaa2 {
 pthread_mutex_t SessionManagerImpl::_posixMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -114,4 +123,30 @@ void SessionManagerImpl::registerEventNotification(
 	//TODO Add Code here
 }
 
+void SessionManagerImpl::initialize() {
+	// For now contact will be same for all Session
+	// So initialize the ConnectionPool with set of PBS connection
+	char *pbsDefault = pbs_default();
+	if (pbsDefault) {
+		PBSConnection pbsconn_(pbsDefault, 0, 0);
+		for (int i = 1; i < (MAX_CONNS + 1); i++) {
+			try {
+				ConnectionPool::getInstance()->addConnection(pbsconn_);
+			} catch (const Drmaa2Exception &ex) {
+				// Caller should catch the exception.
+				std::stringstream ss;
+				ss << ex.what();
+				ss << " Created only ";
+				ss << (i);
+				ss << " Connections";
+				throw InternalException(SourceInfo(__func__, __LINE__),
+						Message(ss.str()));
+			}
+		}
+	} else {
+		throw InternalException(SourceInfo(__func__, __LINE__));
+	}
+}
+
 } /* namespace drmaa2 */
+

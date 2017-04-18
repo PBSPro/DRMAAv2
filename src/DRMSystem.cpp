@@ -35,7 +35,7 @@
  *
  */
 
-#include "DRMSystem.h"
+#include <DRMSystem.h>
 
 namespace drmaa2 {
 

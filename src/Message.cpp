@@ -35,7 +35,7 @@
  *
  */
 
-#include "Message.h"
+#include <Message.h>
 
 namespace drmaa2 {
 

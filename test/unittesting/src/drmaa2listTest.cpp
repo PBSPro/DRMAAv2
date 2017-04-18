@@ -99,7 +99,7 @@ void drmaa2_list_Test::testListGet() {
 	drmaa2_list_add(l, value5);
 	drmaa2_list_add(l, value6);
 	drmaa2_list_add(l, value7);
-	long size = drmaa2_list_size(l);
+
 	CPPUNIT_ASSERT_EQUAL((const char * )drmaa2_list_get(l, 3), value4);
 	CPPUNIT_ASSERT_EQUAL((const char * )drmaa2_list_get(l, 2), value5);
 	CPPUNIT_ASSERT_EQUAL((const char * )drmaa2_list_get(l, 1), value6);

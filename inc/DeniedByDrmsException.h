@@ -38,9 +38,9 @@
 #ifndef SRC_DENIEDBYDRMSEXCEPTION_H_
 #define SRC_DENIEDBYDRMSEXCEPTION_H_
 
-#include "Drmaa2Exception.h"
-#include "Message.h"
-#include "SourceInfo.h"
+#include <Drmaa2Exception.h>
+#include <Message.h>
+#include <SourceInfo.h>
 
 namespace drmaa2 {
 

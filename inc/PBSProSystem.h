@@ -38,7 +38,10 @@
 #ifndef INC_PBSPROSYSTEM_H_
 #define INC_PBSPROSYSTEM_H_
 
-#include "DRMSystem.h"
+#include <drmaa2.hpp>
+#include <DRMSystem.h>
+#include <pthread.h>
+#include <string>
 
 namespace drmaa2 {
 
@@ -81,6 +84,16 @@ private:
 	 *
 	 */
 	PBSProSystem& operator=(PBSProSystem const& obj_);
+	/**
+	 * @brief - Checks pbs_errno and throw exception
+	 *
+	 * @throw - InvalidStateException
+	 * @throw - ImplementationSpecificException
+	 *
+	 * @return - None
+	 */
+	void checkForPBS_ErrorException() throw (InvalidStateException,
+			ImplementationSpecificException, DeniedByDrmsException);
 public:
 	/**
 	 * @brief Default Destructor
@@ -89,41 +102,50 @@ public:
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void connect(Connection& connection_) throw ();
+	virtual void connect(Connection& connection_)
+			throw (ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void disconnect(const Connection& connection_) throw ();
+	virtual void disconnect(const Connection& connection_)
+			throw (ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
 	virtual Job* runJob(const Connection & connection_,
-			const JobTemplate& jobTemplate_) throw ();
+			const JobTemplate& jobTemplate_)
+					throw (ImplementationSpecificException);
 
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void hold(const Connection & connection_, const Job& job_) throw ();
+	virtual void hold(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void suspend(const Connection & connection_,
-			const Job& job_) throw ();
+	virtual void suspend(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void resume(const Connection & connection_,
-			const Job& job_) throw ();
+	virtual void resume(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void release(const Connection & connection_,
-			const Job& job_) throw ();
+	virtual void release(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual void terminate(const Connection & connection_,
-			const Job& job_) throw ();
+	virtual void terminate(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
@@ -200,7 +222,7 @@ public:
 	 * @brief overridden method from DRMSystem
 	 */
 	virtual Reservation* getReservation(const Connection & connection_,
-				const string& reservationId_) throw ();
+			const string& reservationId_) throw ();
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
@@ -214,8 +236,7 @@ public:
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual QueueInfoList getAllQueues(
-			const Connection & connection_) throw ();
+	virtual QueueInfoList getAllQueues(const Connection & connection_) throw ();
 	/**
 	 * @brief overridden method from DRMSystem
 	 */

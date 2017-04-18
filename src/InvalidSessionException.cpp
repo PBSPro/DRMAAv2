@@ -35,7 +35,7 @@
  *
  */
 
-#include "InvalidSessionException.h"
+#include <InvalidSessionException.h>
 
 namespace drmaa2 {
 

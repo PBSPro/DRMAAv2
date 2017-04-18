@@ -35,7 +35,7 @@
  *
  */
 
-#include "DrmCommunicationException.h"
+#include <DrmCommunicationException.h>
 
 namespace drmaa2 {
 

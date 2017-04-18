@@ -35,110 +35,100 @@
  *
  */
 
-#include <cppunit/extensions/AutoRegisterSuite.h>
-#include <cppunit/extensions/HelperMacros.h>
-#include <cppunit/TestAssert.h>
-#include <ConnectionPool.h>
-#include <ConnectionPoolTest.h>
-#include <PBSProSystem.h>
-#include "drmaa2.hpp"
-#include <string>
+#include "../inc/ConnectionPoolTest.h"
 
+#include <cppunit/extensions/AutoRegisterSuite.h>
+#include <cppunit/TestAssert.h>
+#include <Connection.h>
+#include <ConnectionPool.h>
+#include <InternalException.h>
+#include <pbs_ifl.h>
+#include <PBSConnection.h>
 
 using namespace drmaa2;
 using namespace std;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ConnectionPoolTest);
 
-void CheckForOpenConnection(const Connection& obj) {
-	Connection *tmp = obj.clone();
-	PBSConnection *_pbsCnHolder = static_cast<PBSConnection*>(tmp);
-	CPPUNIT_ASSERT(_pbsCnHolder->getFd() > 0);
-	delete tmp;
-}
-
-void TestMaxConnections() {
-	Connection *pbtest = new PBSConnection(pbs_default(), 0, 0);
+void ConnectionPoolTest::setUp() {
+	PBSConnection pbtest = PBSConnection(pbs_default(), 0, 0);
 	ConnectionPool *tmp = ConnectionPool::getInstance();
-	for(int i = 0; i < 20; i++) {
-		const Connection &pbstmpFds = tmp->addConnection(*pbtest);
-		if(i < 19) {
-			CheckForOpenConnection(pbstmpFds);
-			ConnectionPool::getInstance()->returnConnection(pbstmpFds);
-		}
-	}
-	delete pbtest;
-}
-
-void TestGetConnections() {
-	ConnectionPool *tmp = ConnectionPool::getInstance();
-	for(int i = 0; i < 20; i++) {
-		const Connection &pbstmpFds = tmp->getConnection();
-		CheckForOpenConnection(pbstmpFds);
-		if(i == 19) {
-			tmp->reconnectConnection(pbstmpFds);
-		}
+	// add 5 connection
+	for (int i = 0; i < 5; i++) {
+		CPPUNIT_ASSERT_NO_THROW(tmp->addConnection(pbtest));
 	}
 }
 
-void ConnectionPoolTest::TestConnectionPool() {
-	Connection *pbtest = new PBSConnection(pbs_default(), 0, 0);
-	ConnectionPool *tmp = ConnectionPool::getInstance();
-	const Connection &pbstmp = tmp->addConnection(*pbtest);
-	delete pbtest;
-	CheckForOpenConnection(pbstmp);
-	ConnectionPool::getInstance()->returnConnection(pbstmp);
-	TestMaxConnections();
-	TestGetConnections();
-	Connection *pbtstRel = new PBSConnection(pbs_default(), 0, 0);
-	ConnectionPool::getInstance()->reconnectConnection(*pbtstRel);
-	delete pbtstRel;
+void ConnectionPoolTest::tearDown() {
 	ConnectionPool::getInstance()->clearConnectionPool();
-        Connection *pbtestfin = new PBSConnection(pbs_default(), 0, 0);
-        ConnectionPool *tmpfin = ConnectionPool::getInstance();
-        const Connection &pbstmpFds = tmpfin->addConnection(*pbtestfin);
-        DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-        drms->connect(*pbtestfin);
-        Connection *tmpdelete = pbtestfin->clone();
-        delete tmpdelete;
-        QueueInfoList tst = drms->getAllQueues(*pbtestfin);
-        cout<<tst.front().name;
-        JobTemplate jt_;
-        jt_.submitAsHold = false;
-        jt_.minPhysMemory = 10;
-        jt_.jobName.assign("TESTJOB");
-        jt_.remoteCommand.assign("/bin/sleep");
-        jt_.args.push_back("1000");
-        jt_.queueName.assign("workq");
-        jt_.minSlots = 1;
-        jt_.priority = 0;
-        jt_.accountingId.assign("DRMAA2JOB");
-        jt_.email.push_back("user@drmaa2.com");
-        jt_.emailOnStarted = 0;
-        jt_.emailOnTerminated = 0;
-        jt_.startTime = time(0);
-        string s1, s2;
-        s1.assign("TestVar");
-        s2.assign("TestVal");
-        jt_.jobEnvironment.insert(pair<string, string>(s1, s2));
-        jt_.joinFiles = 1;
-        //jt_.machineOS = LINUX;
-        jt_.rerunnable = 0;
-        s1.assign(DRMAA2_WALLCLOCK_TIME);
-        s2.assign("01:00:00");
-        jt_.resourceLimits.insert(pair<string, string>(s1, s2));
-        Job* tmpjid = drms->runJob(*pbtestfin, jt_);
-        sleep(2);
-	JobInfo _jinfo = tmpjid->getJobInfo();
-        tmpjid->suspend();
-	string substate;
-	tmpjid->getState(substate);
-        sleep(10);
-	tmpjid->resume();
-        sleep(10);
-	tmpjid->hold();
-        sleep(10);
-        tmpjid->release();
-	sleep(10);
-	tmpjid->terminate();
+}
+
+void ConnectionPoolTest::TestMaxConnection() {
+	int remainingCapacity = MAX_CONNS - 5;
+	PBSConnection pbtest = PBSConnection(pbs_default(), 0, 0);
+	ConnectionPool *tmp = ConnectionPool::getInstance();
+	// add remaining
+	for (int i = 0; i < remainingCapacity; i++) {
+		CPPUNIT_ASSERT_NO_THROW(tmp->addConnection(pbtest));
+	}
+	CPPUNIT_ASSERT_THROW(tmp->addConnection(pbtest), InternalException);
+}
+
+void ConnectionPoolTest::TestConnection() {
+	try {
+		const Connection &conn_ =
+				ConnectionPool::getInstance()->getConnection();
+
+		const PBSConnection *pbsConn =
+				dynamic_cast<const PBSConnection*>(&conn_);
+
+		CPPUNIT_ASSERT(pbsConn->getFd() > 0);
+	} catch (const Drmaa2Exception &ex) {
+		//Do nothing
+	}
+}
+
+void ConnectionPoolTest::TestNoConnection() {
+	ConnectionPool *tmp = ConnectionPool::getInstance();
+
+	// make connections busy in ConnectionPool
+	for (int i = 0; i < 5; i++) {
+		CPPUNIT_ASSERT_NO_THROW(tmp->getConnection());
+	}
+	// assert the getConnection
+	CPPUNIT_ASSERT_THROW(tmp->getConnection(), InternalException);
+
+}
+
+void ConnectionPoolTest::TestReturnConnection() {
+	ConnectionPool *tmp = ConnectionPool::getInstance();
+	try {
+		const Connection &conn_ = tmp->getConnection();
+
+		// make connections busy in ConnectionPool
+		for (int i = 0; i < 4; i++) {
+			tmp->getConnection();
+		}
+		CPPUNIT_ASSERT_THROW(tmp->getConnection(), InternalException);
+		tmp->returnConnection(conn_);
+		CPPUNIT_ASSERT_NO_THROW(tmp->getConnection());
+
+	} catch (const Drmaa2Exception &ex) {
+		// do nothing
+	}
+}
+
+void ConnectionPoolTest::TestReconnectConnection() {
+	PBSConnection pbtest = PBSConnection(pbs_default(), 0, 0);
+	ConnectionPool *tmp = ConnectionPool::getInstance();
+	CPPUNIT_ASSERT_NO_THROW(tmp->reconnectConnection(pbtest));
+}
+
+void ConnectionPoolTest::TestConnectionFailExceptions() {
+
+	ConnectionPool *tmp = ConnectionPool::getInstance();
+	PBSConnection pbtest = PBSConnection("unknown", 0, 0);
+	ConnectionPool::getInstance()->clearConnectionPool();
+
+	CPPUNIT_ASSERT_THROW(tmp->addConnection(pbtest), ImplementationSpecificException);
 }

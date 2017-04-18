@@ -35,17 +35,50 @@
  *
  */
 
-#include <InvalidStateException.h>
+#ifndef INC_CONNECTION_H_
+#define INC_CONNECTION_H_
+
+#include <ImplementationSpecificException.h>
 
 namespace drmaa2 {
 
-InvalidStateException::InvalidStateException(const SourceInfo& sourceInfo,
-		const Message& message) :
-		Drmaa2Exception(message, sourceInfo) {
-}
+/**
+ *  @brief Abstract class for holding DRMS.
+ */
+class Connection {
+	friend class ConnectionPool;
+public:
+	/**
+	 * @brief
+	 * 	~Connection() - virtual destructor.
+	 */
+	virtual ~Connection() {
 
-InvalidStateException::~InvalidStateException() throw () {
-	// TODO Auto-generated destructor stub
-}
+	}
+	/**
+	 * @brief
+	 *	clone() - Pure virtual function to clone the object.
+	 */
+	virtual Connection* clone() const = 0;
+private:
+	/**
+	 * @brief
+	 *	connect() - Pure virtual function to connect to DRMS.
+	 *
+	 *	throw ImplementationSpecificException - Errors from
+	 *			DRMS
+	 */
+	virtual void connect() throw (ImplementationSpecificException) = 0;
+	/**
+	 * @brief
+	 *	connect() - Pure virtual function to disconnect from DRMS.
+	 *
+	 *	throw ImplementationSpecificException - Errors from
+	 *			DRMS
+	 */
+	virtual void disconnect() throw (ImplementationSpecificException) = 0;
+};
 
 } /* namespace drmaa2 */
+
+#endif /* INC_CONNECTION_H_ */

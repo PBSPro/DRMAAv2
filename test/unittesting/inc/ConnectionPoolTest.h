@@ -38,12 +38,28 @@
 #define CONNECTIONPOOLTEST_H_
 #include <cppunit/extensions/HelperMacros.h>
 
-class ConnectionPoolTest : public CppUnit::TestFixture {
-        CPPUNIT_TEST_SUITE(ConnectionPoolTest);
-        CPPUNIT_TEST(TestConnectionPool);
-        CPPUNIT_TEST_SUITE_END();
+class ConnectionPoolTest: public CppUnit::TestFixture {
+//TODO mock PBS
+	CPPUNIT_TEST_SUITE(ConnectionPoolTest);
+	CPPUNIT_TEST(TestMaxConnection);
+	CPPUNIT_TEST(TestNoConnection);
+	CPPUNIT_TEST(TestReturnConnection);
+	CPPUNIT_TEST(TestReconnectConnection);
+	CPPUNIT_TEST(TestConnectionFailExceptions);
+	CPPUNIT_TEST(TestConnection);CPPUNIT_TEST_SUITE_END()
+	;
 public:
-        void TestConnectionPool();
+	void setUp();
+	void tearDown();
+public:
+	void TestReconnectConnection();
+	void TestNoConnection();
+	void TestMaxConnection();
+	void TestReturnConnection();
+	void TestConnection();
+	void TestConnectionFailExceptions();
+private:
+
 };
 #endif
 

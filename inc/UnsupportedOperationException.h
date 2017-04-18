@@ -38,9 +38,9 @@
 #ifndef API_CPP_BINDING_UNSUPPORTEDOPERATIONEXCEPTION_H_
 #define API_CPP_BINDING_UNSUPPORTEDOPERATIONEXCEPTION_H_
 
-#include "Drmaa2Exception.h"
-#include "Message.h"
-#include "SourceInfo.h"
+#include <Drmaa2Exception.h>
+#include <Message.h>
+#include <SourceInfo.h>
 
 namespace drmaa2 {
 

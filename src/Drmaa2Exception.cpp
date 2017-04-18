@@ -35,8 +35,7 @@
  *
  */
 
-#include "Drmaa2Exception.h"
-
+#include <Drmaa2Exception.h>
 #include <sstream>
 
 namespace drmaa2 {

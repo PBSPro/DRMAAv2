@@ -38,27 +38,27 @@
 #ifndef INC_JOBTEMPLATEATTRHELPER_H
 #define INC_JOBTEMPLATEATTRHELPER_H
 
-#include "drmaa2.hpp"
-#include "AttrHelper.h"
-
+#include <AttrHelper.h>
+#include <string>
+using namespace std;
 namespace drmaa2 {
 
 
 class JobTemplateAttrHelper : public AttrHelper {
 public:
-	string emailList_;
-	string emailNotify_;
-	string resourceMemory_;
-	string resourceSlot_;
-	string resourceWalltime_;
-	string resourceCputime_;
-	string argList_;
-	string submitArguments_;
-	string stageinFiles_;
-	string stageoutFiles_;
-	string startTime_;
-	string priority_;
-	string envList_;
+	string _emailList;
+	string _emailNotify;
+	string _resourceMemory;
+	string _resourceSlot;
+	string _resourceWalltime;
+	string _resourceCputime;
+	string _argList;
+	string _submitArguments;
+	string _stageinFiles;
+	string _stageoutFiles;
+	string _startTime;
+	string _priority;
+	string _envList;
 	/**
 	 * @brief default constructor
 	 *

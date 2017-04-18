@@ -35,12 +35,17 @@
  *
  */
 
-#include <PBSJobImpl.h>
 #include <ConnectionPool.h>
-#include <PBSProSystem.h>
-#include <JobTemplateAttrHelper.h>
 #include <Drmaa2Exception.h>
-#include <stdlib.h>
+#include <JobTemplateAttrHelper.h>
+#include <PBSConnection.h>
+#include <PBSIFLExtend.h>
+#include <PBSJobImpl.h>
+#include <PBSProSystem.h>
+#include <stddef.h>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
 
 namespace drmaa2 {
 
@@ -61,7 +66,7 @@ const void PBSJobImpl::populateJobInfo(void) const {
 	char *attrVal_;
 	_jobInfo.jobId = _jobId;
 	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
+	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&pbsConnPoolObj_);
 	struct batch_status *batchResponse_ = NULL;
 	batchResponse_ = pbs_statjob(pbsCnHolder_->getFd(), (char *)_jobId.c_str(), NULL, (char *)"x");
@@ -160,12 +165,16 @@ const void PBSJobImpl::populateJobInfo(void) const {
 }
 
 const JobState& PBSJobImpl::getState(string& subState) {
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	_jobState = drms->state(pbsConnPoolObj_, *this);
+	try {
+		const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
+		_jobState = Singleton<DRMSystem, PBSProSystem>::getInstance()->state(
+				pbsConnPoolObj_, *this);
+		ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	} catch (const Drmaa2Exception &ex) {
+		subState = _jobInfo.jobSubState;
+		_jobState  = UNDETERMINED;
+	}
 	subState = _jobInfo.jobSubState;
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
 	return _jobState;
 }
 
@@ -174,43 +183,68 @@ const JobTemplate& PBSJobImpl::getJobTemplate(void) const {
 }
 
 void PBSJobImpl::suspend(void) throw () {
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->suspend(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	try {
+		const Connection &conn_ =
+				ConnectionPool::getInstance()->getConnection();
+		Singleton<DRMSystem, PBSProSystem>::getInstance()->suspend(
+				ConnectionPool::getInstance()->getConnection(), *this);
+		ConnectionPool::getInstance()->returnConnection(conn_);
+		_jobState = SUSPENDED;
+	} catch (const Drmaa2Exception &ex) {
+		_jobState = UNDETERMINED;
+	}
 }
 
 void PBSJobImpl::resume(void) throw () {
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->resume(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	try {
+		const Connection &conn_ =
+				ConnectionPool::getInstance()->getConnection();
+		Singleton<DRMSystem, PBSProSystem>::getInstance()->resume(
+				conn_, *this);
+		ConnectionPool::getInstance()->returnConnection(conn_);
+		_jobState = RUNNING;
+	} catch (const Drmaa2Exception &ex) {
+		_jobState = UNDETERMINED;
+	}
 }
 
 void PBSJobImpl::hold(void) throw () {
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->hold(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	try {
+		const Connection &conn_ =
+				ConnectionPool::getInstance()->getConnection();
+		Singleton<DRMSystem, PBSProSystem>::getInstance()->hold(
+				conn_, *this);
+		ConnectionPool::getInstance()->returnConnection(conn_);
+		_jobState = QUEUED_HELD;
+	} catch (const Drmaa2Exception &ex) {
+		_jobState = UNDETERMINED;
+	}
 }
 
 void PBSJobImpl::release(void) throw () {
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->release(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	try {
+		const Connection &conn_ =
+				ConnectionPool::getInstance()->getConnection();
+		Singleton<DRMSystem, PBSProSystem>::getInstance()->release(
+				conn_, *this);
+		ConnectionPool::getInstance()->returnConnection(conn_);
+		_jobState = RUNNING;
+	} catch (const Drmaa2Exception &ex) {
+		_jobState = UNDETERMINED;
+	}
 }
 
 void PBSJobImpl::terminate(void) throw () {
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->addConnection(pbsconn_);
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->terminate(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	try {
+		const Connection &conn_ =
+				ConnectionPool::getInstance()->getConnection();
+		Singleton<DRMSystem, PBSProSystem>::getInstance()->terminate(
+				conn_, *this);
+		ConnectionPool::getInstance()->returnConnection(conn_);
+		_jobState = DONE;
+	} catch (const Drmaa2Exception &ex) {
+		_jobState = UNDETERMINED;
+	}
 }
 
 void PBSJobImpl::reap(void) throw (){

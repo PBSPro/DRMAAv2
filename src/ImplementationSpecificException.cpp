@@ -35,7 +35,7 @@
  *
  */
 
-#include "ImplementationSpecificException.h"
+#include <ImplementationSpecificException.h>
 
 namespace drmaa2 {
 

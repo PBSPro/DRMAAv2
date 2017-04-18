@@ -52,7 +52,7 @@ void drmaa2_cpptest();
 using namespace std;
 
 /**
- * @namespace DRMAA interfaces and structures are encapsulated in
+ * @namespace drmaa2 interfaces and structures are encapsulated in
  * 				single namespace
  */
 namespace drmaa2 {
@@ -1061,8 +1061,8 @@ private:
 
 public:
 	SessionManager() :
-			drmsName(DRMS_NAME), drmaaName(DRMAA_NAME), drmsVersion(
-			DRMS_MAJOR_VERSION, DRMS_MINOR_VERSION), drmaaVersion(
+			drmsName(DRMS_NAME), drmsVersion(DRMS_MAJOR_VERSION,
+					DRMS_MINOR_VERSION), drmaaName(DRMAA_NAME), drmaaVersion(
 			DRMAA_MAJOR_VERSION, DRMAA_MINOR_VERSION) {
 	}
 	/**
@@ -1309,6 +1309,17 @@ public:
 	 *
 	 */
 	virtual void registerEventNotification(const DrmaaCallback& callback) = 0;
+
+	/**
+	 * @brief Initializes SessionManager
+	 *
+	 * @throw InternalException - If the init fails
+	 *
+	 * @return None
+	 *
+	 */
+	virtual void initialize() = 0;
+
 };
 }
 #endif /* DRMAA2_HPP_ */

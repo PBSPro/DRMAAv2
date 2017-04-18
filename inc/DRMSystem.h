@@ -38,40 +38,14 @@
 #ifndef INC_DRMSYSTEM_H_
 #define INC_DRMSYSTEM_H_
 
-#include "drmaa2.hpp"
-#include "ConnectionPool.h"
-extern "C" {
-#include "pbs_ifl.h"
-#include "pbs_error.h"
-}
-
+#include <drmaa2.hpp>
+#include <DeniedByDrmsException.h>
+#include <ImplementationSpecificException.h>
+#include <InvalidStateException.h>
+#include <string>
+#include <Connection.h>
 
 namespace drmaa2 {
-#define CMDLINE_SELECT "1"
-#define YES "y"
-#define NO "n"
-#define EMAIL_E "e"
-#define EMAIL_B "b"
-#define OUTERR "oe"
-#define ARGUMENT_XMLSTART "<jsdl-hpcpa:Argument>"
-#define ARGUMENT_XMLEND "</jsdl-hpcpa:Argument>"
-#define SELECT "select"
-#define WALLTIME "walltime"
-#define CPUTIME "cput"
-#define ARCH "arch"
-#define OS_LINUX "linux"
-#define CMD_SUSPEND "suspend"
-#define CMD_HOLD "hold"
-#define CMD_RESUME "resume"
-#define NCPUS "ncpus"
-#define MEM "mem"
-
-#define ATTRL struct attrl
-#define OPERATION enum batch_op
-#define ADD_NODE(head_, node_) {\
-	node_->next = head_;\
-	head_ = node_;\
-}
 
 /**
  * @class DRMSystem
@@ -104,7 +78,8 @@ public:
 	 * @return - None
 	 *
 	 */
-	virtual void connect(Connection& connection_) throw () = 0;
+	virtual void connect(Connection& connection_)
+			throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Disconnects from DRMS
@@ -117,7 +92,8 @@ public:
 	 * @return - None
 	 *
 	 */
-	virtual void disconnect(const Connection& connection_) throw () = 0;
+	virtual void disconnect(const Connection& connection_)
+			throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief runs a job
@@ -134,7 +110,8 @@ public:
 	 *
 	 */
 	virtual Job* runJob(const Connection & connection_,
-			const JobTemplate& jobTemplate_) throw () = 0;
+			const JobTemplate& jobTemplate_)
+					throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Triggers a transition from QUEUED to QUEUED_HELD, or from
@@ -147,12 +124,16 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @throw DeniedByDrmsException - Denied by DRMS
+	 *
 	 * @throw InvalidStateException - State is invalid to perform operation
 	 *
 	 * @return - None
 	 *
 	 */
-	virtual void hold(const Connection & connection_, const Job& job_) throw () = 0;
+	virtual void hold(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Triggers a transition from RUNNING to SUSPENDED state.
@@ -164,13 +145,15 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @throw DeniedByDrmsException - Denied by DRMS
 	 * @throw InvalidStateException - State is invalid to perform operation
 	 *
 	 * @return - None
 	 *
 	 */
-	virtual void suspend(const Connection & connection_,
-			const Job& job_) throw () = 0;
+	virtual void suspend(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Triggers a transition from SUSPENDED to RUNNING state
@@ -182,13 +165,15 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @throw DeniedByDrmsException - Denied by DRMS
 	 * @throw InvalidStateException - State is invalid to perform operation
 	 *
 	 * @return - None
 	 *
 	 */
-	virtual void resume(const Connection & connection_,
-			const Job& job_) throw () = 0;
+	virtual void resume(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Triggers a transition from QUEUED_HELD to QUEUED, or from
@@ -201,13 +186,15 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @throw DeniedByDrmsException - Denied by DRMS
 	 * @throw InvalidStateException - State is invalid to perform operation
 	 *
 	 * @return - None
 	 *
 	 */
-	virtual void release(const Connection & connection_,
-			const Job& job_) throw () = 0;
+	virtual void release(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Deletes a job from DRMS
@@ -219,13 +206,15 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @throw DeniedByDrmsException - Denied by DRMS
 	 * @throw InvalidStateException - State is invalid to perform operation
 	 *
 	 * @return - None
 	 *
 	 */
-	virtual void terminate(const Connection & connection_,
-			const Job& job_) throw () = 0;
+	virtual void terminate(const Connection & connection_, const Job& job_)
+			throw (InvalidStateException, DeniedByDrmsException,
+			ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Job clean up in DRMS
@@ -342,7 +331,7 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
-	 * @throw InvalidStateException - State is invalid to perform operation
+	 * @throw k - State is invalid to perform operation
 	 *
 	 * @return - None
 	 *
@@ -491,7 +480,7 @@ public:
 	 * @brief Gets all Jobs from DRMS
 	 *
 	 * @param[in] connection_ - connection object
-	 * @param[in] filer_ - JobInfo
+	 * @param[in] filter_ - JobInfo
 	 *
 	 * @throw DrmCommunicationException - Communication errors while
 	 * 									sending/receiving data from/to DRMS

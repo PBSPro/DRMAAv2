@@ -38,8 +38,8 @@
 #ifndef INC_RESERVATIONTEMPLATEATTRHELPER_H
 #define INC_RESERVATIONTEMPLATEATTRHELPER_H
 
-#include "drmaa2.hpp"
-#include "AttrHelper.h"
+#include <AttrHelper.h>
+#include <PBSIFLExtend.h>
 
 namespace drmaa2 {
 

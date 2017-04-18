@@ -38,9 +38,9 @@
 #ifndef SRC_SESSIONMANAGERIMPL_H_
 #define SRC_SESSIONMANAGERIMPL_H_
 
+#include <drmaa2.hpp>
+#include <pthread.h>
 #include <string>
-
-#include "drmaa2.hpp"
 
 using namespace std;
 
@@ -150,6 +150,12 @@ public:
 	 * @brief overridden method from SessionManager
 	 */
 	virtual void registerEventNotification(const DrmaaCallback& callback);
+
+	/**
+	 * @brief overridden method from SessionManager
+	 *
+	 */
+	virtual void initialize();
 
 };
 

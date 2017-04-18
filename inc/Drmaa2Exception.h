@@ -38,11 +38,10 @@
 #ifndef SRC_DRMAA2EXCEPTION_H_
 #define SRC_DRMAA2EXCEPTION_H_
 
+#include <Message.h>
+#include <SourceInfo.h>
 #include <exception>
 #include <string>
-
-#include "Message.h"
-#include "SourceInfo.h"
 
 using namespace std;
 namespace drmaa2 {

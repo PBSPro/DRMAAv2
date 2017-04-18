@@ -38,9 +38,9 @@
 #ifndef API_CPP_BINDING_IMPLEMENTATIONSPECIFICEXCEPTION_H_
 #define API_CPP_BINDING_IMPLEMENTATIONSPECIFICEXCEPTION_H_
 
-#include "Drmaa2Exception.h"
-#include "Message.h"
-#include "SourceInfo.h"
+#include <Drmaa2Exception.h>
+#include <Message.h>
+#include <SourceInfo.h>
 
 namespace drmaa2 {
 
@@ -54,9 +54,9 @@ public:
 	/**
 	 * @brief Constructs the exception with the specified message and source location.
 	 *
-	 * @param message - Message associated to the exception.
-	 * @param sourceInfo - Source location related to the exception.
-	 * @parm errorCode - DRMS specific error code
+	 * @param[in] message - Message associated to the exception.
+	 * @param[in] sourceInfo - Source location related to the exception.
+	 * @param[in] errorCode - DRMS specific error code
 	 *
 	 */
 	ImplementationSpecificException(long errorCode,
@@ -81,7 +81,7 @@ public:
 	/**
 	 * @brief Setter method for message
 	 *
-	 * @param _errorCode_ - errorCode
+	 * @param[in] errorCode_ - errorCode
 	 *
 	 * @return - None
 	 */

@@ -38,9 +38,8 @@
 #ifndef SRC_PBSJOBIMPL_H_
 #define SRC_PBSJOBIMPL_H_
 
+#include <drmaa2.hpp>
 #include <string>
-
-#include "drmaa2.hpp"
 
 using namespace std;
 
@@ -51,28 +50,35 @@ namespace drmaa2 {
  *
  */
 class PBSJobImpl: public Job {
-	/**
-	 * Constructor
-	 */
-	PBSJobImpl() {};
-	/**
-	 * Copy constructor
-	 */
-	PBSJobImpl(const PBSJobImpl &jobImpl_) {};
-public:
+private:
 	const string _jobId;
 	JobTemplate _jt;
 	JobState _jobState;
 	mutable JobInfo _jobInfo;
 	/**
+	 * Constructor
+	 */
+	PBSJobImpl() {
+		_jobState = UNDETERMINED;
+	};
+	/**
+	 * Copy constructor
+	 */
+	PBSJobImpl(const PBSJobImpl &jobImpl_) {
+		_jobState = UNDETERMINED;
+	};
+public:
+	/**
 	 * Parameterized constructor
 	 */
 	PBSJobImpl(const string& jobId_):_jobId(jobId_) {
+		_jobState = UNDETERMINED;
 	}
 	/**
 	 * Parameterized constructor
 	 */
 	PBSJobImpl(const string& jobId_, const JobTemplate& jt_):_jobId(jobId_), _jt(jt_) {
+		_jobState = UNDETERMINED;
 	};
 	/**
 	 * Destructor

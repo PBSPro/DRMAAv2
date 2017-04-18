@@ -36,267 +36,119 @@
  */
 #ifndef CONNECTIONPOOL_H
 #define CONNECTIONPOOL_H
-#include <iostream>
-#include <list>
-#include <string>
 
-extern "C" {
-#include <pbs_ifl.h>
-#include <syscall.h>
+#include <Connection.h>
 #include <pthread.h>
-#include <unistd.h>
-}
+#include <list>
+#include <InternalException.h>
 
 using namespace std;
 
 #define MAX_CONNS 20
+#define CON_NOT_AVAILABLE  "No Connection available"
+#define ADD_CON_FAILED  "Add connection failed"
+#define MAX_CON_REACHED "Max connection reached"
+
+namespace drmaa2 {
 
 /**
-  *  @brief Abstract class for holding DRMS.  
-  */  
-class Connection {
-	friend class ConnectionPool;
-	public:
-		/**
-		 * @brief
-		 * 	~Connection() - virtual destructor.
-		 */
-		virtual ~Connection() {}
-		/**
-		 * @brief
-		 *	clone() - Pure virtual function to clone the object.
-		 */
-		virtual Connection* clone() const = 0;
-	private:
-		/**
-		 * @brief
-		 *	connect() - Pure virtual function to connect to DRMS.
-		 */
-		virtual void connect() throw() = 0;
-		/**
-		 * @brief
-		 *	connect() - Pure virtual function to disconnect from DRMS.
-		 */
-		virtual void disconnect() throw() = 0;
-};
-
-/**
-  *  @brief Class that holds PBS related Information. 
-  */
-class PBSConnection: public Connection {
-		const string _serverName;
-		int _fd;
-		const int _port;
-		/**
-		 * @brief
-		 * 	operator==() - Compare operator for checking address of two objects
-		 *
-		 * @param[in]   obj - const reference to PBSConnection object
-		 *
-		 * @return	bool - True is address are same.
-		 */
-		bool operator==(const PBSConnection& obj) {
-			if (this == &obj)
-				return true;
-			else
-				return false;
-		}
-	public:
-		/**
-		 * @brief
-		 * 	PBSConnection() - Parameterized constructor.
-		 * 
-		 * @param[in]   serverName_ - const reference to serverName
-		 *  		fd_ - const reference to file descriptor 
-		 *  		port_ - const reference to port number
-		 */
-		PBSConnection(const string& serverName_, const int& fd_, const int& port_)
-			:_serverName(serverName_), _fd(fd_), _port(port_) {}
-		/**
-		 * @brief
-		 * 	PBSConnection(PBSConnection&) - Copy constructor.
-		 *
-		 * @param[in]   obj - const reference to PBSConnection object
-		 */
-		PBSConnection(const PBSConnection& obj)
-		: _serverName(obj.getServerName()), _fd(obj.getFd()), _port(obj.getPort()) {}
-		/**
-		 * @brief
-		 * 	~PBSConnection() - virtual destructor.
-		 */
-		virtual ~PBSConnection() {};
-		/**
-		 * @brief
-		 *	getFd() - returns connection fd
-		 *
-		 * @return    int - fd associated with the class
-		 *
-		 */
-		int getFd() const {
-			return _fd;
-		}
-		/**
-		 * @brief
-		 *	setFd() - sets connection fd with value passed
-		 *
-		 * @param[in]   fd - file descriptor 
-		 *
-		 * @return    void
-		 *
-		 */
-		void setFd(int fd) {
-			_fd = fd;
-		}
-		/**
-		 * @brief
-		 *	getPort() - gets port used for connection
-		 *
-		 * @return   int - port associated with the connection
-		 *
-		 */
-		int getPort() const {
-			return _port;
-		}
-		/**
-		 * @brief
-		 *	getServerName() - gets ServerName used for connection
-		 *
-		 * @return   string - ServerName associated with the connection
-		 *
-		 */
-		const string& getServerName() const {
-			return _serverName;
-		}
-
-		/**
-		 * @brief
-		 *	clone() - creates a clone of the current object
-		 *
-		 * @return   Connection* - pointer to PBSConnection class
-		 *
-		 */
-		Connection* clone() const {
-			PBSConnection *_clonePBSConnection = new PBSConnection(*this);
-			if(this->getFd() > 0)
-				_clonePBSConnection->setFd(dup(this->getFd()));
-			return _clonePBSConnection;
-		}
-	private:
-		/**
-		 * @brief
-		 *	connect() - establish connection to PBSPro
-		 *
-		 * @return   void
-		 *
-		 */
-		void connect() throw() {
-			_fd = pbs_connect((char *)_serverName.c_str()); //TODO: Will replace with wrapped DRMS System apis
-			if(_fd < 0) {
-				//TODO throw exception
-			}
-		}
-		/**
-		 * @brief
-		 *	disconnect() - disconnect from PBSPro
-		 *
-		 * @return   void
-		 *
-		 */
-		void disconnect() throw() {
-			pbs_disconnect(_fd); //TODO: Will replace with wrapped DRMS System apis
-			//TODO throw exception
-		}
-};
-
-/**
-  *  @brief Class that maintains pool of connections to DRMS.  
-  */  
+ *  @brief Class that maintains pool of connections to DRMS.
+ */
 class ConnectionPool {
-	private:
-		static pthread_mutex_t _instMutex;
-		static ConnectionPool* _instance;
-		static pthread_mutex_t _connMutex;
-		/**
-		 * @brief
-		 *      ConnectionPool() - constructor for ConnectionPool
-		 *
-		 */
-		ConnectionPool() {}
-		/**
-		 * @brief
-		 *      ConnectionPool() - copy constructor for ConnectionPool
-		 *
-		 */
-		ConnectionPool(ConnectionPool& _conPool) {}
-		list<Connection*> _usedConnections;
-		list<Connection*> _freeConnections;
-	public:
-		/**
-		 * @brief
-		 *	getInstance() - returns singleton Instance of ConnectionPool
-		 *
-		 * @return    pointer to ConnectionPool object
-		 *
-		 */
-		static ConnectionPool* getInstance() {
-			pthread_mutex_lock(&_instMutex);
-			if (_instance == 0)
-			{
-				_instance = new ConnectionPool;
-			}
-			pthread_mutex_unlock(&_instMutex);
-			return _instance;
+private:
+	static pthread_mutex_t _instMutex;
+	static ConnectionPool* _instance;
+	static pthread_mutex_t _connMutex;
+	/**
+	 * @brief
+	 *      ConnectionPool() - constructor for ConnectionPool
+	 *
+	 */
+	ConnectionPool() {
+	}
+	/**
+	 * @brief
+	 *      ConnectionPool() - copy constructor for ConnectionPool
+	 *
+	 */
+	ConnectionPool(ConnectionPool& _conPool) {
+	}
+	list<Connection*> _usedConnections;
+	list<Connection*> _freeConnections;
+public:
+	/**
+	 * @brief
+	 *	getInstance() - returns singleton Instance of ConnectionPool
+	 *
+	 * @return    pointer to ConnectionPool object
+	 *
+	 */
+	static ConnectionPool* getInstance() {
+		pthread_mutex_lock(&_instMutex);
+		if (_instance == 0) {
+			_instance = new ConnectionPool;
 		}
-		/**
-		 * @brief
-		 *      getConnection() - returns the available connections in pool.
-		 *
-		 * @param[in]   void
-		 *
-		 * @return	Connection& - reference to PBSConnection
-		 *
-		 *
-		 */
-		const Connection& getConnection();
-		/**
-		 * @brief
-		 *      addConnection() - adds the connection passed and establishes connection.
-		 *
-		 * @param[in]   object - const reference to PBSConnection
-		 *
-		 * @return	Connection& - const reference to PBSConnection
-		 *
-		 *
-		 */
-		const Connection& addConnection(const Connection& object);
-		/**
-		 * @brief
-		 *      returnConnection() - returns unused connection to pool.
-		 *
-		 * @param[in]   object - const reference to PBSConnection
-		 *
-		 * @return	void
-		 *
-		 */
-		void returnConnection(const Connection& object);
-		/**
-		 * @brief
-		 *      reconnectConnection() - re-establishes connection to PBS.
-		 *
-		 * @param[in]   object - const reference to PBSConnection
-		 *
-		 * @return	void
-		 *
-		 */
-		void reconnectConnection(const Connection& object);
-		/**
-		 * @brief
-		 *      clearConnectionPool() - closes existing connections and frees up the pool.
-		 *
-		 * @return	void
-		 *
-		 */
-		void clearConnectionPool();
-};
+		pthread_mutex_unlock(&_instMutex);
+		return _instance;
+	}
+	/**
+	 * @brief
+	 *      getConnection() - returns the available connections in pool.
+	 *
+	 * @param - None
+	 *
+	 * @throw InternalException - If connections are not available
+	 *
+	 * @return	Connection
+	 */
+	const Connection& getConnection() throw (InternalException);
 
+	/**
+	 * @brief
+	 *      addConnection() - adds the connection passed and establishes connection.
+	 *
+	 * @param[in]   object - Connection
+	 *
+	 * @throw InternalException - If Max connection reached
+	 *
+	 * @throw refer drmaa2::Connection::connect
+	 *
+	 * @return	None
+	 */
+	void addConnection(const Connection& object)
+			throw (ImplementationSpecificException, InternalException);
+	/**
+	 * @brief
+	 *      returnConnection() - returns unused connection to pool.
+	 *
+	 * @param[in]   object - const reference to PBSConnection
+	 *
+	 * @return	void
+	 *
+	 */
+	void returnConnection(const Connection& object);
+	/**
+	 * @brief
+	 *      reconnectConnection() - re-establishes connection to PBS.
+	 *
+	 * @param[in]   object - Connection
+	 *
+	 * @throw refer drmaa2::Connection::connect
+	 *
+	 * @return	void
+	 *
+	 */
+	void reconnectConnection(const Connection& object)
+			throw (ImplementationSpecificException, InternalException);
+
+	/**
+	 * @brief
+	 *      clearConnectionPool() - closes existing connections and frees up the pool.
+	 *
+	 * @return	void
+	 *
+	 */
+	void clearConnectionPool();
+};
+}
 #endif

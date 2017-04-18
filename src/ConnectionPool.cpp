@@ -35,14 +35,18 @@
  *
  */
 
-#include "ConnectionPool.h"
+#include <ConnectionPool.h>
+#include <Message.h>
+#include <SourceInfo.h>
+
+namespace drmaa2 {
 
 ConnectionPool* ConnectionPool::_instance = 0;
 pthread_mutex_t ConnectionPool::_instMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ConnectionPool::_connMutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-const Connection& ConnectionPool::getConnection() {
+const Connection& ConnectionPool::getConnection() throw (InternalException) {
 	pthread_mutex_lock(&ConnectionPool::_connMutex);
 	if(_freeConnections.size() > 0) {
 		Connection *cnHold_ = _freeConnections.front();
@@ -51,22 +55,30 @@ const Connection& ConnectionPool::getConnection() {
 		pthread_mutex_unlock(&ConnectionPool::_connMutex);
 		return *cnHold_;
 	}
-	//TODO: Throw exception
 	pthread_mutex_unlock(&ConnectionPool::_connMutex);
+	throw InternalException(DRMAA2_SOURCEINFO(), Message(INTERNAL_SHORT,
+			CON_NOT_AVAILABLE));
 }
 
-const Connection& ConnectionPool::addConnection(const Connection& object) {
+void ConnectionPool::addConnection(const Connection& object)
+		throw (ImplementationSpecificException, InternalException) {
 	pthread_mutex_lock(&ConnectionPool::_connMutex);
 	if ((_usedConnections.size() + _freeConnections.size()) < MAX_CONNS) {
 		Connection *addObj_ = object.clone();
-		addObj_->connect();
-		_usedConnections.push_back(addObj_);
+		try {
+			addObj_->connect();
+		} catch (const Drmaa2Exception &ex) {
+			// TODO Wrap the Mutex in class, this code can be avoided
+			pthread_mutex_unlock(&ConnectionPool::_connMutex);
+			throw ;
+		}
+		_freeConnections.push_back(addObj_);
 		pthread_mutex_unlock(&ConnectionPool::_connMutex);
-		return *addObj_;
-	} else {
-		//TODO: Throw exception
+		return;
 	}
 	pthread_mutex_unlock(&ConnectionPool::_connMutex);
+	throw InternalException(DRMAA2_SOURCEINFO(), Message(INTERNAL_SHORT,
+			MAX_CON_REACHED));
 }
 
 void ConnectionPool::returnConnection(const Connection& object) {
@@ -80,19 +92,22 @@ void ConnectionPool::returnConnection(const Connection& object) {
 			}
 		}
 	}
-	//TODO: Throw exception
 	pthread_mutex_unlock(&ConnectionPool::_connMutex);
 }
 
-void ConnectionPool::reconnectConnection(const Connection& object) {
+void ConnectionPool::reconnectConnection(const Connection& object)
+		throw (ImplementationSpecificException, InternalException) {
 	pthread_mutex_lock(&ConnectionPool::_connMutex);
-	for(list<Connection*>::const_iterator it = _usedConnections.begin(); it != _usedConnections.end(); ++it) {
-		if(&object == *it) {
-			(*it)->connect();
-		}
+	try {
+		// Since connect() is pure virtual function const object cannot work
+		// cast the object
+		const_cast<Connection&> (object).connect();
+	} catch (const Drmaa2Exception &ex) {
+		// TODO Wrap the Mutex in class, this code can be avoided
+		pthread_mutex_unlock(&ConnectionPool::_connMutex);
+		throw ;
 	}
 	pthread_mutex_unlock(&ConnectionPool::_connMutex);
-	//TODO: Throw exception
 }
 
 void ConnectionPool::clearConnectionPool() {
@@ -100,7 +115,11 @@ void ConnectionPool::clearConnectionPool() {
 	if(_freeConnections.size() > 0) {
 		list<Connection*>::iterator it = _freeConnections.begin();
 		while(it != _freeConnections.end()) {
-			(*it)->disconnect();
+			try {
+				(*it)->disconnect();
+			} catch (Drmaa2Exception &ex) {
+				// /Do nothing
+			}
 			delete (*it);
 			_freeConnections.erase(it++);
 		}
@@ -108,10 +127,15 @@ void ConnectionPool::clearConnectionPool() {
 	if(_usedConnections.size() > 0) {
 		list<Connection*>::iterator it = _usedConnections.begin();
 		while(it != _usedConnections.end()) {
-			(*it)->disconnect();
+			try {
+				(*it)->disconnect();
+			} catch (Drmaa2Exception &ex) {
+				// /Do nothing
+			}
 			delete (*it);
 			_usedConnections.erase(it++);
 		}
 	}
 	pthread_mutex_unlock(&ConnectionPool::_connMutex);
+}
 }

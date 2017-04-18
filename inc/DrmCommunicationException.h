@@ -38,9 +38,9 @@
 #ifndef SRC_DRMCOMMUNICATIONEXCEPTION_H_
 #define SRC_DRMCOMMUNICATIONEXCEPTION_H_
 
-#include "Drmaa2Exception.h"
-#include "Message.h"
-#include "SourceInfo.h"
+#include <Drmaa2Exception.h>
+#include <Message.h>
+#include <SourceInfo.h>
 
 namespace drmaa2 {
 

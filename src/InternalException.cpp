@@ -35,7 +35,7 @@
  *
  */
 
-#include "InternalException.h"
+#include <InternalException.h>
 
 namespace drmaa2 {
 

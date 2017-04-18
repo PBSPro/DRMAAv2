@@ -38,12 +38,7 @@
 #ifndef INC_ATTRHELPER_H
 #define INC_ATTRHELPER_H
 
-#include "drmaa2.hpp"
-#include <Drmaa2Exception.h>
-extern "C" {
-#include "pbs_ifl.h"
-#include "pbs_error.h"
-}
+#include <PBSIFLExtend.h>
 
 namespace drmaa2 {
 
@@ -87,33 +82,36 @@ public:
 	 * @return  void
 	 */
 	virtual void deleteAttributeList();
+
 	/**
 	 * @brief Method to add entry to attribute list
 	 *
 	 * @param[in] attrName_ - attribute name
-	 * 	      attrVal_  - attribute value
-	 *	      op_ - operator needs to be set
+	 * @param[in] attrVal_  - attribute value
+	 * @param[in] op_ - operator needs to be set
 	 *
 	 * @return  void
 	 */
 	virtual void setAttribute(char *attrName_, char *attrVal_, OPERATION op_ = SET);
+
 	/**
 	 * @brief Method to get entry from attribute list
 	 *
 	 * @param[in] attrName_ - attribute name
-	 * 	      attrVal_  - attribute value
+	 * @param[in] attrVal_  - attribute value
 	 *
 	 * @return  char* - Pointer to value
-	 * 	    NULL  - If value not found
+	 * 	        NULL  - If value not found
 	 */
 	virtual char* getAttribute(char *attrName_, char *attrVal_);
 	/**
 	 * @brief Method to get entry from attribute list
 	 *
 	 * @param[in] resName_  - Resource name
-	 *	      resVal_   - Resource Value
+	 * @param[in] resVal_   - Resource Value
 	 */
 	virtual void setResource(char *resName_, char *resVal_);
+
 	/**
 	 * @brief pure virtual method to override for different templates.
 	 */

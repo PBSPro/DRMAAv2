@@ -34,18 +34,16 @@
  * trademark licensing policies.
  *
  */
-#include "drmaa2.hpp"
-#include "DRMSystem.h"
-#include "AttrHelper.h"
-#include "JobTemplateAttrHelper.h"
-#include <sstream>
+
+#include <drmaa2.hpp>
+#include <JobTemplateAttrHelper.h>
 #include <algorithm>
+#include <ctime>
 #include <iterator>
+#include <list>
 #include <map>
-#include <string.h>
-#include <functional>
-#include <numeric>
-#include <string.h>
+#include <sstream>
+#include <vector>
 
 namespace drmaa2 {
 
@@ -59,12 +57,12 @@ ATTRL* JobTemplateAttrHelper::parseTemplate(void* template_) {
 	JobTemplate &jobTemplate_ = *_jT;
 	if(jobTemplate_.emailOnStarted || jobTemplate_.emailOnTerminated) {
 		if (jobTemplate_.emailOnStarted) {
-			emailNotify_.append(EMAIL_B);
+			_emailNotify.append(EMAIL_B);
 		}
 		if(jobTemplate_.emailOnTerminated) {
-			emailNotify_.append(EMAIL_E);
+			_emailNotify.append(EMAIL_E);
 		}
-		setAttribute((char *) ATTR_m, (char*) emailNotify_.c_str());
+		setAttribute((char *) ATTR_m, (char*) _emailNotify.c_str());
 	}
 	if(jobTemplate_.submitAsHold) {
 		setAttribute((char *)ATTR_h, (char*)USER_HOLD);
@@ -76,11 +74,11 @@ ATTRL* JobTemplateAttrHelper::parseTemplate(void* template_) {
 	}
 	if (jobTemplate_.email.size() > 0) {
 		copy(jobTemplate_.email.begin(), jobTemplate_.email.end(), ostream_iterator<string>(stream_,(char *)","));
-		emailList_.assign(stream_.str());
-		emailList_.erase(emailList_.size() - 1, emailList_.size());
+		_emailList.assign(stream_.str());
+		_emailList.erase(_emailList.size() - 1, _emailList.size());
 		stream_.str("");
 		stream_.clear();
-		setAttribute((char*) ATTR_M, (char*)emailList_.c_str());
+		setAttribute((char*) ATTR_M, (char*)_emailList.c_str());
 	}
 	if (!jobTemplate_.jobName.empty()) {
 		setAttribute((char *) ATTR_N, (char*)jobTemplate_.jobName.c_str());
@@ -104,41 +102,41 @@ ATTRL* JobTemplateAttrHelper::parseTemplate(void* template_) {
 		struct tm * timeinfo;
 		timeinfo = localtime ( &jobTemplate_.startTime );
 		stream_ << mktime(timeinfo);
-		stream_ >> startTime_;
+		stream_ >> _startTime;
 		stream_.str("");
 		stream_.clear();
-		setAttribute((char *)ATTR_a, (char *)startTime_.c_str());
+		setAttribute((char *)ATTR_a, (char *)_startTime.c_str());
 	}
 	if(jobTemplate_.priority != 0) {
 		stream_ << jobTemplate_.priority;
-		stream_ >> priority_;
+		stream_ >> _priority;
 		stream_.str("");
 		stream_.clear();
-		setAttribute((char *)ATTR_p, (char *)priority_.c_str());
+		setAttribute((char *)ATTR_p, (char *)_priority.c_str());
 	}
 	if(jobTemplate_.jobEnvironment.size() > 0) {
 		for(map<string,string>::iterator it = jobTemplate_.jobEnvironment.begin(); it != jobTemplate_.jobEnvironment.end(); ++it) {
-			envList_.append(it->first);
-			envList_.append("=");
-			envList_.append(it->second);
-			envList_.append(",");
+			_envList.append(it->first);
+			_envList.append("=");
+			_envList.append(it->second);
+			_envList.append(",");
 		}
-		envList_.erase(envList_.size() - 1, envList_.size());
-		setAttribute((char*) ATTR_v, (char*)envList_.c_str());
+		_envList.erase(_envList.size() - 1, _envList.size());
+		setAttribute((char*) ATTR_v, (char*)_envList.c_str());
 	}
 	if (jobTemplate_.minPhysMemory) {
 		stream_ << jobTemplate_.minPhysMemory << "KB";
-		resourceMemory_.append(stream_.str());
+		_resourceMemory.append(stream_.str());
 		stream_.str("");
 		stream_.clear();
-		setResource((char *)MEM, (char *)resourceMemory_.c_str());
+		setResource((char *)MEM, (char *)_resourceMemory.c_str());
 	}
 	if (jobTemplate_.minSlots) {
 		stream_ << jobTemplate_.minSlots;
-		resourceSlot_.append(stream_.str());
+		_resourceSlot.append(stream_.str());
 		stream_.str("");
 		stream_.clear();
-		setResource((char *)NCPUS, (char *)resourceSlot_.c_str());
+		setResource((char *)NCPUS, (char *)_resourceSlot.c_str());
 	}
 	searchStr_.assign(DRMAA2_WALLCLOCK_TIME);
 	it = jobTemplate_.resourceLimits.find(searchStr_);
@@ -160,37 +158,37 @@ ATTRL* JobTemplateAttrHelper::parseTemplate(void* template_) {
 	}
 	if(jobTemplate_.stageInFiles.size() > 0) {
 		for(map<string,string>::iterator it = jobTemplate_.stageInFiles.begin(); it != jobTemplate_.stageInFiles.end(); ++it) {
-			stageinFiles_.append(it->second);
-			stageinFiles_.append("@");
-			stageinFiles_.append(it->first);
-			stageinFiles_.append(",");
+			_stageinFiles.append(it->second);
+			_stageinFiles.append("@");
+			_stageinFiles.append(it->first);
+			_stageinFiles.append(",");
 		}
-		stageinFiles_.erase(stageinFiles_.size() - 1, stageinFiles_.size());
-		setAttribute((char*) ATTR_stagein, (char*)stageinFiles_.c_str());
+		_stageinFiles.erase(_stageinFiles.size() - 1, _stageinFiles.size());
+		setAttribute((char*) ATTR_stagein, (char*)_stageinFiles.c_str());
 	}
 	if(jobTemplate_.stageOutFiles.size() > 0) {
 		for(map<string,string>::iterator it = jobTemplate_.stageOutFiles.begin(); it != jobTemplate_.stageOutFiles.end(); ++it) {
-			stageoutFiles_.append(it->first);
-			stageoutFiles_.append("@");
-			stageoutFiles_.append(it->second);
-			stageoutFiles_.append(",");
+			_stageoutFiles.append(it->first);
+			_stageoutFiles.append("@");
+			_stageoutFiles.append(it->second);
+			_stageoutFiles.append(",");
 		}
-		stageoutFiles_.erase(stageoutFiles_.size() - 1, stageoutFiles_.size());
-		setAttribute((char*) ATTR_stagein, (char*)stageoutFiles_.c_str());
+		_stageoutFiles.erase(_stageoutFiles.size() - 1, _stageoutFiles.size());
+		setAttribute((char*) ATTR_stagein, (char*)_stageoutFiles.c_str());
 	}
 	if (!jobTemplate_.remoteCommand.empty()) {
 		setAttribute((char *) ATTR_executable, (char*) jobTemplate_.remoteCommand.c_str());
 
 		copy(jobTemplate_.args.begin(), jobTemplate_.args.end(), ostream_iterator<string>(stream_,(char *)" "));
-		argList_.assign(stream_.str());
-		if(!argList_.empty()) {
-			argList_.erase(argList_.size() - 1, argList_.size());
+		_argList.assign(stream_.str());
+		if(!_argList.empty()) {
+			_argList.erase(_argList.size() - 1, _argList.size());
 			stream_.str("");
 			stream_.clear();
-			submitArguments_.assign(ARGUMENT_XMLSTART);
-			submitArguments_.append(argList_);
-			submitArguments_.append(ARGUMENT_XMLEND);
-			setAttribute((char *) ATTR_Arglist, (char*) submitArguments_.c_str());
+			_submitArguments.assign(ARGUMENT_XMLSTART);
+			_submitArguments.append(_argList);
+			_submitArguments.append(ARGUMENT_XMLEND);
+			setAttribute((char *) ATTR_Arglist, (char*) _submitArguments.c_str());
 		}
 	}
 

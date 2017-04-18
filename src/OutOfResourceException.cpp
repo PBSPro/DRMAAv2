@@ -35,7 +35,7 @@
  *
  */
 
-#include "OutOfResourceException.h"
+#include <OutOfResourceException.h>
 
 namespace drmaa2 {
 

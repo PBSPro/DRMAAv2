@@ -35,17 +35,31 @@
  *
  */
 
-#include <InvalidStateException.h>
+#include <drmaa2.hpp>
+#include <PBSConnection.h>
+#include <PBSProSystem.h>
+#include <unistd.h>
 
 namespace drmaa2 {
 
-InvalidStateException::InvalidStateException(const SourceInfo& sourceInfo,
-		const Message& message) :
-		Drmaa2Exception(message, sourceInfo) {
-}
-
-InvalidStateException::~InvalidStateException() throw () {
+PBSConnection::~PBSConnection() {
 	// TODO Auto-generated destructor stub
 }
 
+Connection* PBSConnection::clone() const {
+	PBSConnection *_clonePBSConnection = new PBSConnection(*this);
+	if (this->getFd() > 0)
+		_clonePBSConnection->setFd(dup(this->getFd()));
+	return _clonePBSConnection;
+}
+
+void PBSConnection::connect() throw (ImplementationSpecificException) {
+	Singleton<DRMSystem, PBSProSystem>::getInstance()->connect(*this);
+}
+
+void PBSConnection::disconnect() throw (ImplementationSpecificException) {
+	Singleton<DRMSystem, PBSProSystem>::getInstance()->disconnect(*this);
+}
+
 } /* namespace drmaa2 */
+

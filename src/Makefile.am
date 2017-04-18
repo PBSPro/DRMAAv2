@@ -56,7 +56,8 @@ libsrc_la_SOURCES= Session.cpp  \
                    UnsupportedAttributeException.cpp \
                    DRMSystem.cpp \
                    PBSProSystem.cpp \
-		   ConnectionPool.cpp \
+                   ConnectionPool.cpp \
+                   PBSConnection.cpp \
                    AttrHelper.cpp \
                    JobTemplateAttrHelper.cpp \
                    ReservationTemplateAttrHelper.cpp \

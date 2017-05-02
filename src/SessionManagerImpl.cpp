@@ -45,6 +45,9 @@
 #include <SourceInfo.h>
 #include <exception>
 #include <sstream>
+#include <Message.h>
+#include <SourceInfo.h>
+#include <InvalidArgumentException.h>
 
 namespace drmaa2 {
 pthread_mutex_t SessionManagerImpl::_posixMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -60,8 +63,29 @@ bool SessionManagerImpl::supports(const DrmaaCapability& capability_) {
 
 const JobSession& SessionManagerImpl::createJobSession(
 		const string& sessionName_, const string& contact_) {
-	//TODO Add Code here
-	throw std::exception();
+	if (sessionName_.empty()) {
+		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_ARG_LONG));
+	}
+
+	if (_jobSessionMap.find(sessionName_) == _jobSessionMap.end()) {
+		StringList jobCategories_;
+		string jobSessionContact_;
+		if (contact_.empty()) {
+			char *tmp = NULL;
+			tmp = pbs_default();
+			if(tmp != NULL) {
+				jobSessionContact_.assign(tmp);
+			}
+		} else {
+			jobSessionContact_.assign(contact_);
+		}
+		JobSessionImpl jobSession_(sessionName_, jobCategories_, contact_);
+		_jobSessionMap.insert(std::pair<string,JobSessionImpl>(sessionName_,jobSession_));
+	}
+	JobSessionImpl &jobSessionImplObj_ = _jobSessionMap.find(sessionName_)->second;
+	JobSession& newJobSession_ = static_cast<JobSession&>(jobSessionImplObj_);
+	return newJobSession_;
 }
 
 const JobSession& SessionManagerImpl::openJobSession(
@@ -71,12 +95,17 @@ const JobSession& SessionManagerImpl::openJobSession(
 }
 
 void SessionManagerImpl::closeJobSession(JobSession& session_) {
-	//TODO Add Code here
-
 }
 
 void SessionManagerImpl::destroyJobSession(const string& sessionName_) {
-	//TODO Add Code here
+	if (sessionName_.empty()) {
+		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_ARG_LONG));
+	}
+	if (_jobSessionMap.erase(sessionName_) == 0) {
+		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_ARG_LONG));
+	}
 }
 
 const ReservationSession& SessionManagerImpl::createReservationSession(

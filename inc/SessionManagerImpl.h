@@ -41,6 +41,7 @@
 #include <drmaa2.hpp>
 #include <pthread.h>
 #include <string>
+#include <JobSessionImpl.h>
 
 using namespace std;
 
@@ -59,6 +60,7 @@ class SessionManagerImpl: public SessionManager {
 	 */
 	friend Singleton<SessionManager, SessionManagerImpl> ;
 private:
+	map<string, JobSessionImpl> _jobSessionMap;
 	static pthread_mutex_t _posixMutex;
 
 	/**

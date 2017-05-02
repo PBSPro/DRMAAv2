@@ -182,7 +182,7 @@ const JobTemplate& PBSJobImpl::getJobTemplate(void) const {
 	return _jt;
 }
 
-void PBSJobImpl::suspend(void) throw () {
+void PBSJobImpl::suspend(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -195,7 +195,7 @@ void PBSJobImpl::suspend(void) throw () {
 	}
 }
 
-void PBSJobImpl::resume(void) throw () {
+void PBSJobImpl::resume(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -208,7 +208,7 @@ void PBSJobImpl::resume(void) throw () {
 	}
 }
 
-void PBSJobImpl::hold(void) throw () {
+void PBSJobImpl::hold(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -221,7 +221,7 @@ void PBSJobImpl::hold(void) throw () {
 	}
 }
 
-void PBSJobImpl::release(void) throw () {
+void PBSJobImpl::release(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -234,7 +234,7 @@ void PBSJobImpl::release(void) throw () {
 	}
 }
 
-void PBSJobImpl::terminate(void) throw () {
+void PBSJobImpl::terminate(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -247,7 +247,7 @@ void PBSJobImpl::terminate(void) throw () {
 	}
 }
 
-void PBSJobImpl::reap(void) throw (){
+void PBSJobImpl::reap(void) const throw (){
 	return;
 }
 

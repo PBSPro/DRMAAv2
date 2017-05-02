@@ -105,6 +105,7 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @warning Application has to handle Job memory deallocation
 	 *
 	 * @return Job - Job object
 	 *
@@ -277,12 +278,15 @@ public:
 	 * 									sending/receiving data from/to DRMS
 	 * @throw ImplementationSpecificException - Any implementation specific
 	 * 											errors
+	 * @warning application has to handle Job Array memory 
 	 *
 	 * @return JobArray - JobArray object
 	 *
 	 */
 	virtual JobArray* runJobArray(const Connection & connection_,
-			const JobTemplate& jobTemplate_) throw () = 0;
+			const JobTemplate& jobTemplate_, const long beginIndex_,
+			const long endIndex_, const long step_,
+			const long maxParallel_) throw () = 0;
 
 	/**
 	 * @brief Triggers a transition from QUEUED to QUEUED_HELD, or from

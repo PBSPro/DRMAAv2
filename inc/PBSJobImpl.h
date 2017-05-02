@@ -53,7 +53,7 @@ class PBSJobImpl: public Job {
 private:
 	const string _jobId;
 	JobTemplate _jt;
-	JobState _jobState;
+	mutable JobState _jobState;
 	mutable JobInfo _jobInfo;
 	/**
 	 * Constructor
@@ -139,7 +139,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void suspend(void) throw();
+	virtual void suspend(void) const throw();
 
 	/**
 	 * @brief resumes a Job
@@ -150,7 +150,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void resume(void) throw();
+	virtual void resume(void) const throw();
 
 	/**
 	 * @brief Holds a Job
@@ -161,7 +161,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void hold(void) throw();
+	virtual void hold(void) const throw();
 
 	/**
 	 * @brief Releases a Job
@@ -172,7 +172,7 @@ public:
 	 *
 	 * @return
 	 */
-	virtual void release(void) throw();
+	virtual void release(void) const throw();
 
 	/**
 	 * @brief Terminates a Job
@@ -183,7 +183,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void terminate(void) throw();
+	virtual void terminate(void) const throw();
 
 	/**
 	 * @brief Clean up any data about this job
@@ -196,7 +196,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void reap(void) throw();
+	virtual void reap(void) const throw();
 
 	/**
 	 * @brief Blocking call to wait until job starts

@@ -45,6 +45,20 @@
 #include <ctime>
 #include <exception>
 #include <list>
+#include "drmaa2.hpp"
+#include "Drmaa2Exception.h"
+#include "InvalidArgumentException.h"
+#include "DeniedByDrmsException.h"
+#include "InvalidArgumentException.h"
+#include "InvalidStateException.h"
+#include "ImplementationSpecificException.h"
+#include "SourceInfo.h"
+#include "PBSJobArrayImpl.h"
+#include "pbs_ifl.h"
+#include "pbs_error.h"
+#include <stdio.h>
+#include <string.h>
+#include <sstream>
 
 namespace drmaa2 {
 pthread_mutex_t PBSProSystem::_posixMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -99,6 +113,7 @@ Job* PBSProSystem::runJob(const Connection& connection_,
 			(char*) destination_.c_str(), NULL);
 	if (jobIdFromDRMS_) {
 		string jobId_(jobIdFromDRMS_);
+		free(jobIdFromDRMS_);
 		return new PBSJobImpl(jobId_, jobTemplate_);
 	} else {
 		throw ImplementationSpecificException(pbs_errno,
@@ -258,39 +273,94 @@ Job* PBSProSystem::getJob(const Connection& connection_,
 }
 
 JobArray* PBSProSystem::runJobArray(const Connection& connection_,
-		const JobTemplate& jobTemplate_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+		const JobTemplate& jobTemplate_, const long beginIndex_,
+		const long endIndex_, const long step_,
+		const long maxParallel_) throw () {
+	string destination_;
+	string jobIndices_;
+	stringstream strm_;
+	char *jobIdFromDRMS_;
+	const PBSConnection *pbsCnHolder_ =
+			static_cast<const PBSConnection*>(&connection_);
+	JobTemplateAttrHelper _attrParse;
+	strm_ << beginIndex_;
+	strm_ << "-";
+	strm_ << endIndex_;
+	if(step_) {
+		strm_ << ":";
+		strm_ << step_;
+	}
+	jobIndices_.assign(strm_.str());
+	if (!jobTemplate_.reservationId.empty())
+		destination_.append(jobTemplate_.queueName);
+	else if (!jobTemplate_.queueName.empty())
+		destination_.append(jobTemplate_.queueName);
+
+	_attrParse.setAttribute((char *)ATTR_J, (char *)jobIndices_.c_str());
+	ATTRL *attributeList = _attrParse.parseTemplate((void*)&jobTemplate_);
+	jobIdFromDRMS_ = pbs_submit(pbsCnHolder_->getFd(), (struct attropl *) attributeList,
+			(char*) jobTemplate_.remoteCommand.c_str(), (char*) destination_.c_str(), NULL);
+	if(jobIdFromDRMS_) {
+		string jobArrayId_(jobIdFromDRMS_);
+		free(jobIdFromDRMS_);
+		return new PBSJobArrayImpl(jobArrayId_, jobTemplate_);
+	} else {
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
+	}
 }
 
 void PBSProSystem::hold(const Connection& connection_,
 		const JobArray& jobArray_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret_;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	ret_ = pbs_holdjob(pbsCnHolder_->getFd(), (char*)jobArray_.getJobArrayId().c_str(), NULL, NULL);
+	if(ret_ != 0)
+		throw InvalidStateException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_STATE_LONG));
 }
 
 void PBSProSystem::suspend(const Connection& connection_,
 		const JobArray& jobArray_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret_;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	ret_ = pbs_sigjob(pbsCnHolder_->getFd(), (char *)jobArray_.getJobArrayId().c_str(), (char *)CMD_SUSPEND, NULL);
+	if(ret_ != 0) {
+		throw InvalidStateException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_STATE_LONG));
+	}
 }
 
 void PBSProSystem::resume(const Connection& connection_,
 		const JobArray& jobArray_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret_;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	ret_ = pbs_sigjob(pbsCnHolder_->getFd(), (char *)jobArray_.getJobArrayId().c_str(), (char *)CMD_RESUME, NULL);
+	if(ret_ != 0) {
+		throw InvalidStateException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_STATE_LONG));
+	}
 }
 
 void PBSProSystem::release(const Connection& connection_,
 		const JobArray& jobArray_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret_;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	ret_ = pbs_rlsjob(pbsCnHolder_->getFd(), (char*)jobArray_.getJobArrayId().c_str(), NULL, NULL);
+	if(ret_ != 0) {
+		throw InvalidStateException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_STATE_LONG));
+	}
 }
 
 void PBSProSystem::terminate(const Connection& connection_,
 		const JobArray& jobArray_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret_;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	ret_ = pbs_deljob(pbsCnHolder_->getFd(), (char*)jobArray_.getJobArrayId().c_str(), NULL);
+	if(ret_ != 0) {
+		throw InvalidStateException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_STATE_LONG));
+	}
 }
 
 void PBSProSystem::reap(const Connection& connection_,

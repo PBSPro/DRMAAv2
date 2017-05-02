@@ -164,7 +164,9 @@ public:
 	 * @brief overridden method from DRMSystem
 	 */
 	virtual JobArray* runJobArray(const Connection & connection_,
-			const JobTemplate& jobTemplate_) throw ();
+			const JobTemplate& jobTemplate_, const long beginIndex_,
+			const long endIndex_, const long step_,
+			const long maxParallel_) throw ();
 
 	/**
 	 * @brief overridden method from DRMSystem

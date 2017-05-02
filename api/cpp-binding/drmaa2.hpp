@@ -455,7 +455,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void suspend(void) = 0;
+	virtual void suspend(void) const throw() = 0;
 
 	/**
 	 * @brief resumes a Job
@@ -466,7 +466,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void resume(void) = 0;
+	virtual void resume(void) const throw() = 0;
 
 	/**
 	 * @brief Holds a Job
@@ -477,7 +477,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void hold(void) = 0;
+	virtual void hold(void) const throw() = 0;
 
 	/**
 	 * @brief Releases a Job
@@ -488,7 +488,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void release(void) = 0;
+	virtual void release(void) const throw() = 0;
 
 	/**
 	 * @brief Terminates a Job
@@ -499,7 +499,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void terminate(void) = 0;
+	virtual void terminate(void) const throw() = 0;
 
 	/**
 	 * @brief Clean up any data about this job
@@ -512,7 +512,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void reap(void) = 0;
+	virtual void reap(void) const = 0;
 
 	/**
 	 * @brief Blocking call to wait until job starts
@@ -548,7 +548,8 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~JobArray(void);
+	virtual ~JobArray(void) {
+	}
 
 	/**
 	 * @brief Returns Job array ID
@@ -557,7 +558,7 @@ public:
 	 *
 	 * @return valid job array ID
 	 */
-	virtual string& getJobArrayId(void) const = 0;
+	virtual const string& getJobArrayId(void) const = 0;
 
 	/**
 	 * @brief Returns List of jobs in JobArray
@@ -566,7 +567,7 @@ public:
 	 *
 	 * @return List of Job
 	 */
-	virtual JobList& getJobs(void) const = 0;
+	virtual JobList& getJobs(void) = 0;
 
 	/**
 	 * @brief Returns JobTemplate from which JobArray is submitted
@@ -575,7 +576,7 @@ public:
 	 *
 	 * @return JobTemlpate
 	 */
-	virtual JobTemplate& getJobTemplate(void) const = 0;
+	virtual const JobTemplate& getJobTemplate(void) const = 0;
 
 	/**
 	 * @brief Suspends a JobArray
@@ -586,7 +587,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void suspend(void) = 0;
+	virtual void suspend(void) const = 0;
 
 	/**
 	 * @brief resumes a JobArray
@@ -597,7 +598,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void resume(void) = 0;
+	virtual void resume(void) const = 0;
 
 	/**
 	 * @brief Holds a JobArray
@@ -608,7 +609,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void hold(void) = 0;
+	virtual void hold(void) const = 0;
 
 	/**
 	 * @brief Releases a JobArray
@@ -619,7 +620,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void release(void) = 0;
+	virtual void release(void) const = 0;
 
 	/**
 	 * @brief Terminates a JobArray
@@ -630,7 +631,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void terminate(void) = 0;
+	virtual void terminate(void) const = 0;
 
 	/**
 	 * @brief Clean up any data about this JobArray
@@ -643,7 +644,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void reap(void) = 0;
+	virtual void reap(void) const = 0;
 };
 
 /**
@@ -791,9 +792,9 @@ public:
  */
 class JobSession {
 private:
-	const string contact; /*!< DRMS Contact name */
 	const string sessionName; /*!< Session name */
 	StringList jobCategories; /*!< List of Categories*/
+	const string contact; /*!< DRMS Contact name */
 public:
 
 	/**
@@ -806,24 +807,23 @@ public:
 	/**
 	 * @brief Constructor
 	 *
-	 * @param contact_ - DRMS contact name
 	 * @param sessionName_ - Session Name
 	 * @param jobCategories_ - Job Categories
+	 * @param contact_ - DRMS contact name
 	 *
 	 */
-	JobSession(const string& contact_,
-			const string& sessionName_,
-			const StringList& jobCategories_) :
-					contact(contact_),
-					sessionName(sessionName_),
-					jobCategories(jobCategories_) {
+	JobSession( const string& sessionName_,
+			const StringList& jobCategories_, 
+			const string& contact_) : sessionName(sessionName_),
+					jobCategories(jobCategories_) , contact(contact_) {
 
 	}
 
 	/**
 	 * Destructor
 	 */
-	virtual ~JobSession(void);
+	virtual ~JobSession(void){
+	}
 
 	/**
 	 * @brief Returns DRMS contact name
@@ -883,9 +883,9 @@ public:
 	 *
 	 * @throw InvalidArgumentException - If DRMS fails to accept JobTemplate
 	 *
-	 * @return valid job id returned from the DRMS
+	 * @return Reference to Job object from the DRMS
 	 */
-	virtual const string& runJob(const JobTemplate& jobTemplate_) = 0;
+	virtual const Job& runJob(const JobTemplate& jobTemplate_) const = 0;
 
 	/**
 	 * @brief Submit JobArray to DRMS
@@ -902,7 +902,7 @@ public:
 	 */
 	virtual const JobArray& runBulkJobs(const JobTemplate& jobTemplate_,
 			const long beginIndex_, const long endIndex_, const long step_,
-			const long maxParallel_) = 0;
+			const long maxParallel_) const = 0;
 
 	/**
 	 * @brief In a list of specified job ids waits until

@@ -40,6 +40,7 @@ test_drmaa_SOURCES=	SessionManagerTest.cpp \
 			ConnectionPoolTest.cpp \
 			PBSProSystem_test.cpp \
 			drmaa2listTest.cpp \
+			JobSessionTest.cpp \
 			runtest.cpp
 						
 test_drmaa_LDADD = ../../../api/libdrmaav2.la -lcppunit

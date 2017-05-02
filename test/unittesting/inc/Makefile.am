@@ -37,4 +37,5 @@
 #
 noinst_HEADERS = \
 	ConnectionPoolTest.h \
-	drmaa2listTest.h
+	drmaa2listTest.h \
+	JobSessionTest.h

@@ -57,7 +57,7 @@ using namespace std;
  */
 namespace drmaa2 {
 
-typedef long TimeAmount;
+typedef long long TimeAmount;
 typedef time_t AbsoluteTime;
 
 /**
@@ -223,10 +223,10 @@ struct ReservationTemplate {
 	string reservationName; /*!< Reservation name*/
 	time_t startTime; /*!< Start time of reservation*/
 	time_t endTime; /*!< End time of reservation*/
-	time_t duration; /*!< Duration of reservation */
+	TimeAmount duration; /*!< Duration of reservation */
 	long minSlots; /*!< Minimum slots*/
 	long maxSlots; /*!< Maximum slots*/
-	set<string> usersACL; /*!< user access control list for reservation*/
+	vector<string> usersACL; /*!< user access control list for reservation*/
 	vector<string> candidateMachines; /*!< List of machines for reservations*/
 	long minPhysMemory; /*!< Minimum physical required */
 	OperatingSystem machineOS; /*!< Machine OS*/
@@ -370,7 +370,6 @@ class OutOfResourceException;
 class UnsupportedAttributeException;
 class UnsupportedOperationException;
 class ImplementationSpecificException;
-class PBSJobImpl;
 
 /**
  * @class DrmaaReflective
@@ -536,7 +535,7 @@ public:
 	 */
 	virtual void waitTerminated(TimeAmount& timeout_) = 0;
 };
-typedef list<PBSJobImpl*> JobList;
+typedef list<Job*> JobList;
 
 /**
  * @class JobArray
@@ -658,7 +657,8 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~Reservation(void);
+	virtual ~Reservation(void) {
+	};
 
 	/**
 	 * @brief Returns reservation Id given by DRMS
@@ -694,9 +694,9 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void terminate(void) = 0;
+	virtual void terminate(void) const = 0;
 };
-typedef list<Reservation>* ReservationList;
+typedef list<Reservation*> ReservationList;
 
 /**
  * @class ReservationSession
@@ -731,7 +731,8 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~ReservationSession(void);
+	virtual ~ReservationSession(void) {
+	};
 
 	/**
 	 * @brief Returns DRMS contact name
@@ -772,7 +773,7 @@ public:
 	 * @return Reservation
 	 */
 	virtual const Reservation& requestReservation(
-			const ReservationTemplate& reservationTemplate_) = 0;
+			const ReservationTemplate& reservationTemplate_) const = 0;
 
 	/**
 	 * @brief Returns associated list of reservations

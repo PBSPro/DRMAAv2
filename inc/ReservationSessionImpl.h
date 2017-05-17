@@ -35,52 +35,79 @@
  *
  */
 
-#ifndef INC_RESERVATIONTEMPLATEATTRHELPER_H
-#define INC_RESERVATIONTEMPLATEATTRHELPER_H
+#ifndef SRC_RESERVATIONSESSIONIMPL_H_
+#define SRC_RESERVATIONSESSIONIMPL_H_
 
-#include <AttrHelper.h>
+#include <list>
+#include <string>
+
+#include "drmaa2.hpp"
 #include <PBSIFLExtend.h>
-#include <drmaa2.hpp>
-#include <cstdlib>
+#include <ConnectionPool.h>
+#include <ReservationImpl.h>
+
+using namespace std;
 
 namespace drmaa2 {
-
-class ReservationTemplateAttrHelper : public AttrHelper {
+class ReservationSessionImpl : public ReservationSession {
+private:
+	const string contact; /*!< DRMS Contact name */
+	const string sessionName; /*!< Session name */
+	mutable ReservationList _reservationList;
 public:
-	string startTime_;
-	string endTime_;
-	string durationTime_;
-	string resourceSlot_;
-	string resourceMemory_;
-	string candidateMachines_;
-	string aclUsers_;
+
 	/**
-	 * @brief default constructor
+	 * @brief Constructor
+	 *
+	 * @param contact_ - DRMS contact name
+	 * @param sessionName_ - Session Name
 	 *
 	 */
-	ReservationTemplateAttrHelper() {
+	ReservationSessionImpl(const string sessionName_,
+			const string& contact_ = string(pbs_default())) :
+			ReservationSession(contact_, sessionName_) {
+
 	}
 
 	/**
-	 * @brief parameterised constructor
-	 *
+	 * Destructor
 	 */
-	ReservationTemplateAttrHelper(ATTRL* attrList_) : AttrHelper(attrList_) {
+	virtual ~ReservationSessionImpl(void) {
+		for (list<Reservation*>::iterator it = _reservationList.begin(); it != _reservationList.end(); ++it) {
+			ReservationImpl *_resvImpl = dynamic_cast<ReservationImpl*>(*it);
+			delete _resvImpl;
+		}
 	}
 
 	/**
-	 * @brief default destructor
+	 * @brief Returns Reservation of a given ID
 	 *
+	 * @param[in] reservationId_ - reservationId_ to be searched in the list
+	 *
+	 * @return Reservation
 	 */
-	virtual ~ReservationTemplateAttrHelper() {
-	}
+	virtual const Reservation& getReservation(const string& reservationId_);
 
 	/**
-	 * @brief method to parse reservation template.
+	 * @brief Request DRMS to create a reservation
+	 *
+	 * @param[in] reservationTemplate_ - reservation information
+	 *
+	 * @return Reservation
 	 */
-	ATTRL* parseTemplate(void* template_);
+	virtual const Reservation& requestReservation(
+			const ReservationTemplate& reservationTemplate_) const;
+
+	/**
+	 * @brief Returns associated list of reservations
+	 *
+	 * @param - None
+	 *
+	 * @return ReservationList
+	 */
+
+	virtual const ReservationList& getReservations(void);
 };
-
 }
 
-#endif
+#endif /* SRC_RESERVATIONSESSIONIMPL_H_ */

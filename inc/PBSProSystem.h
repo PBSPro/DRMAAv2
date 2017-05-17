@@ -228,6 +228,11 @@ public:
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
+	virtual void getReservationInfo(const Connection & connection_,
+			const Reservation& reservationId_);
+	/**
+	 * @brief overridden method from DRMSystem
+	 */
 	virtual JobList getJobs(const Connection & connection_,
 			const JobInfo& filter_) throw ();
 	/**

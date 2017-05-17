@@ -47,6 +47,7 @@ namespace drmaa2 {
  * @brief Helper class for parsing Templates to attributes 
  */
 class AttrHelper {
+	bool _attrCreated;
 public:
 	ATTRL* _attrList;
 	/**
@@ -55,12 +56,14 @@ public:
 	 */
 	AttrHelper() {
 		_attrList = NULL;
+		_attrCreated = false;
 	}
 	/**
 	 * @brief parameterised constructor
 	 *
 	 */
 	AttrHelper(ATTRL* attrList_) : _attrList(attrList_) {
+		_attrCreated = false;
 	}
 	/**
 	 * @brief default destructor

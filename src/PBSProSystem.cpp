@@ -35,7 +35,6 @@
  *
  */
 
-#include <JobTemplateAttrHelper.h>
 #include <Message.h>
 #include <PBSConnection.h>
 #include <PBSIFLExtend.h>
@@ -45,17 +44,18 @@
 #include <ctime>
 #include <exception>
 #include <list>
-#include "drmaa2.hpp"
-#include "Drmaa2Exception.h"
-#include "InvalidArgumentException.h"
-#include "DeniedByDrmsException.h"
-#include "InvalidArgumentException.h"
-#include "InvalidStateException.h"
-#include "ImplementationSpecificException.h"
-#include "SourceInfo.h"
-#include "PBSJobArrayImpl.h"
-#include "pbs_ifl.h"
-#include "pbs_error.h"
+#include <JobTemplateAttrHelper.h>
+#include <ReservationTemplateAttrHelper.h>
+#include <drmaa2.hpp>
+#include <Drmaa2Exception.h>
+#include <InvalidArgumentException.h>
+#include <DeniedByDrmsException.h>
+#include <InvalidArgumentException.h>
+#include <InvalidStateException.h>
+#include <ImplementationSpecificException.h>
+#include <SourceInfo.h>
+#include <PBSJobArrayImpl.h>
+#include <ReservationImpl.h>
 #include <stdio.h>
 #include <string.h>
 #include <sstream>
@@ -377,14 +377,30 @@ JobArray* PBSProSystem::getJobArray(const Connection& connection_,
 
 Reservation* PBSProSystem::submit(const Connection& connection_,
 		const ReservationTemplate& reservationTemplate_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	char *reservationIdFromDRMS_;
+	ReservationTemplateAttrHelper rAttrParse_;
+	const PBSConnection *pbsCnHolder_ =
+				static_cast<const PBSConnection*>(&connection_);
+	ATTRL *attributeList_ = rAttrParse_.parseTemplate((void *)&reservationTemplate_);
+	reservationIdFromDRMS_ = pbs_submit_resv(pbsCnHolder_->getFd(), (struct attropl *) attributeList_, NULL);
+	if(reservationIdFromDRMS_) {
+		string reservationId_(reservationIdFromDRMS_);
+		free(reservationIdFromDRMS_);
+		return new ReservationImpl(reservationId_.substr(0, reservationId_.find(" ")), reservationTemplate_);
+	} else {
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
+	}
 }
 
 void PBSProSystem::remove(const Connection& connection_,
 		const Reservation& reservation_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+	int ret;
+	const PBSConnection *pbsCnHolder_ =
+					static_cast<const PBSConnection*>(&connection_);
+	ret = pbs_delresv(pbsCnHolder_->getFd(), (char *)reservation_.getReservationId().c_str(), NULL);
+	if(ret) {
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
+	}
 }
 
 ReservationList PBSProSystem::getAllReservations(
@@ -479,6 +495,77 @@ Reservation* PBSProSystem::getReservation(const Connection& connection_,
 		const string& reservationId_) throw () {
 	//TODO Add Code here
 	throw std::exception();
+}
+
+void PBSProSystem::getReservationInfo(const Connection& connection_,
+		const Reservation& reservation_) {
+	char *attrVal_;
+	const ReservationImpl &reservationImpl_ = static_cast<const ReservationImpl&>(reservation_);
+	reservationImpl_._rInfo.reservationId = reservationImpl_.getReservationId();
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	struct batch_status *batchResponse_ = NULL;
+
+	batchResponse_ = pbs_statresv(pbsCnHolder_->getFd(), (char *)reservationImpl_._rInfo.reservationId.c_str(), NULL, NULL);
+	if(batchResponse_) {
+		ATTRL* attribs_ = batchResponse_->attribs;
+		if(attribs_) {
+			ReservationTemplateAttrHelper attrObj(batchResponse_->attribs);
+			attrVal_ = attrObj.getAttribute((char *)ATTR_resv_name, NULL);
+			if(attrVal_) {
+				reservationImpl_._rInfo.reservationName = string(attrVal_);
+			}
+			attrVal_ = attrObj.getAttribute((char *)ATTR_resv_start, NULL);
+			if(attrVal_) {
+				reservationImpl_._rInfo.reservedStartTime = atol(attrVal_);
+			}
+			attrVal_ = attrObj.getAttribute((char *)ATTR_resv_end, NULL);
+			if(attrVal_) {
+				reservationImpl_._rInfo.reservedEndTime = atol(attrVal_);
+			}
+			attrVal_ = attrObj.getAttribute((char *)ATTR_auth_u, NULL);
+			if(attrVal_) {
+				string authUsers_(attrVal_);
+				string del = ",";
+				size_t pos = 0;
+				string strToken;
+				while ((pos = authUsers_.find(del)) != std::string::npos) {
+				    strToken = authUsers_.substr(0, pos);
+				    reservationImpl_._rInfo.usersACL.insert(strToken);
+				    authUsers_.erase(0, pos + 1);
+				    strToken.clear();
+				}
+				if(authUsers_.length() > 0)
+					reservationImpl_._rInfo.usersACL.insert(authUsers_);
+			}
+			attrVal_ = attrObj.getAttribute((char *)ATTR_resv_nodes, NULL);
+			if(attrVal_) {
+				string resvNodes_(attrVal_);
+				string del = "+";
+				size_t pos = 0;
+				string strToken;
+				long slotNum_;
+				while ((pos = resvNodes_.find(del)) != std::string::npos) {
+				    strToken = resvNodes_.substr(0, pos);
+				    SlotInfo _slot;
+				    _slot.machineName = strToken.substr(0,strToken.find(":"));
+				    strToken.erase(0,strToken.find(":") + 1);
+				    _slot.slots = strToken;
+				    reservationImpl_._rInfo.reservedMachines.push_back(_slot);
+				    resvNodes_.erase(0, pos + 1);
+				    strToken.clear();
+				    slotNum_++;
+				}
+				if(resvNodes_.length() > 0) {
+					SlotInfo _slot;
+					_slot.machineName = resvNodes_.substr(0,strToken.find(":"));
+					resvNodes_.erase(0,strToken.find(":") + 1);
+					_slot.slots = resvNodes_;
+					reservationImpl_._rInfo.reservedMachines.push_back(_slot);
+				}
+			}
+			pbs_statfree(batchResponse_);
+		}
+	}
 }
 
 Version PBSProSystem::getDRMSVersion(const Connection& connection_) throw () {

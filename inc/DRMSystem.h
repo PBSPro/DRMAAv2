@@ -481,6 +481,16 @@ public:
 			const string& reservationId_) throw () = 0;
 
 	/**
+	 * @brief Get reservation Info from DRMS
+	 *
+	 * @param[in] connection_ - connection object
+	 * @param[in] reservation_ - Reservation instance
+	 *
+	 */
+	virtual void getReservationInfo(const Connection & connection_,
+			const Reservation& reservation_) = 0;
+
+	/**
 	 * @brief Gets all Jobs from DRMS
 	 *
 	 * @param[in] connection_ - connection object

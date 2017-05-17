@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_PBSJOBARRAYIMPL_H_
-#define SRC_PBSJOBARRAYIMPL_H_
+#ifndef SRC_RESERVATIONIMPL_H_
+#define SRC_RESERVATIONIMPL_H_
 
 #include <string>
 
@@ -46,134 +46,88 @@ using namespace std;
 
 namespace drmaa2 {
 /**
- * @class PBSJobArrayImpl
- * @brief Concrete class for JobArray
+ * @class ReservationImpl
+ * @brief Concrete class of Reservation
  *
  */
-class PBSJobArrayImpl : public JobArray {
-	const string _jobId;
-	JobTemplate _jt;
-	JobList _jobList;
+class ReservationImpl : public Reservation {
 	/**
 	 * Constructor
 	 */
-	PBSJobArrayImpl() {};
+	ReservationImpl() {};
 	/**
 	 * Copy constructor
 	 */
-	PBSJobArrayImpl(const PBSJobArrayImpl &jobImpl_) {};
+	ReservationImpl(const ReservationImpl &reservationImpl_) {};
 public:
+	const string _reservationId;
+	ReservationTemplate _rTemplate;
+	mutable ReservationInfo _rInfo;
 	/**
 	 * Parameterized constructor
 	 */
-	PBSJobArrayImpl(const string& jobId_):_jobId(jobId_) {
+	ReservationImpl(const string& reservationId_):_reservationId(reservationId_) {
 	}
 	/**
 	 * Parameterized constructor
 	 */
-	PBSJobArrayImpl(const string& jobId_, const JobTemplate& jt_):_jobId(jobId_), _jt(jt_) {
+	ReservationImpl(const string& reservationId_, const ReservationTemplate& rTemplate_):_reservationId(reservationId_), _rTemplate(rTemplate_) {
 	};
 	/**
 	 * Destructor
 	 */
-	virtual ~PBSJobArrayImpl(void);
+	virtual ~ReservationImpl(void);
 
 	/**
-	 * @brief Returns Job array ID
+	 * @brief Returns reservation Id given by DRMS
 	 *
 	 * @param - None
 	 *
-	 * @return valid job array ID
+	 * @return valid reservation Id
 	 */
-	virtual const string& getJobArrayId(void) const;
+	virtual const string& getReservationId(void) const {
+		return _reservationId;
+	}
 
 	/**
-	 * @brief Returns List of jobs in JobArray
+	 * @brief Populates Job information
 	 *
 	 * @param - None
-	 *
-	 * @return List of Job
-	 */
-	virtual JobList& getJobs(void);
-
-	/**
-	 * @brief Returns JobTemplate from which JobArray is submitted
-	 *
-	 * @param - None
-	 *
-	 * @return JobTemlpate
-	 */
-	virtual const JobTemplate& getJobTemplate(void) const;
-
-	/**
-	 * @brief Suspends a JobArray
-	 *
-	 * @param - None
-	 *
-	 * @throw InvalidStateException - If the JobArray is in an inappropriate state
 	 *
 	 * @return None
 	 */
-	virtual void suspend(void) const;
+	const void populateReservationInfo(void) const;
 
 	/**
-	 * @brief resumes a JobArray
+	 * @brief Returns ReservationTemplate from which Reservation is submitted
 	 *
 	 * @param - None
 	 *
-	 * @throw InvalidStateException - If the JobArray is in an inappropriate state
-	 *
-	 * @return None
+	 * @return  ReservationTemlpate
 	 */
-	virtual void resume(void) const;
+	virtual const ReservationTemplate& getReservationTemplate(void) const {
+		return _rTemplate;
+	}
 
 	/**
-	 * @brief Holds a JobArray
+	 * @brief Returns detailed information of Reservation
 	 *
 	 * @param - None
 	 *
-	 * @throw InvalidStateException - If the JobArray is in an inappropriate state
-	 *
-	 * @return None
+	 * @return ReservationInfo
 	 */
-	virtual void hold(void) const;
+	virtual const ReservationInfo& getInfo(void) const;
 
 	/**
-	 * @brief Releases a JobArray
+	 * @brief Terminate the Reservation
 	 *
 	 * @param - None
-	 *
-	 * @throw InvalidStateException - If the JobArray is in an inappropriate state
-	 *
-	 * @return None
-	 */
-	virtual void release(void) const;
-
-	/**
-	 * @brief Terminates a JobArray
-	 *
-	 * @param - None
-	 *
-	 * @throw InvalidStateException - If the JobArray is in an inappropriate state
 	 *
 	 * @return None
 	 */
 	virtual void terminate(void) const;
-
-	/**
-	 * @brief Clean up any data about this JobArray
-	 *
-	 * @param - None
-	 *
-	 * @throw InvalidArgumentException - Reaped JobArray in any subsequent activity
-	 * 									throws an InvalidArgumentException for
-	 * 									the JobArray parameter
-	 *
-	 * @return None
-	 */
-	virtual void reap(void) const;
 };
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_PBSJOBARRAYIMPL_H_ */
+#endif /* SRC_RESERVATIONIMPL_H_ */

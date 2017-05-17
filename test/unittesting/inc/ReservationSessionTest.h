@@ -34,53 +34,16 @@
  * trademark licensing policies.
  *
  */
+#ifndef RESERVATIONSESSIONTEST_H_
+#define RESERVATIONSESSIONTEST_H_
+#include <cppunit/extensions/HelperMacros.h>
 
-#ifndef INC_RESERVATIONTEMPLATEATTRHELPER_H
-#define INC_RESERVATIONTEMPLATEATTRHELPER_H
-
-#include <AttrHelper.h>
-#include <PBSIFLExtend.h>
-#include <drmaa2.hpp>
-#include <cstdlib>
-
-namespace drmaa2 {
-
-class ReservationTemplateAttrHelper : public AttrHelper {
+class ReservationSessionTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(ReservationSessionTest);
+        CPPUNIT_TEST(TestReservationSession);
+        CPPUNIT_TEST_SUITE_END();
 public:
-	string startTime_;
-	string endTime_;
-	string durationTime_;
-	string resourceSlot_;
-	string resourceMemory_;
-	string candidateMachines_;
-	string aclUsers_;
-	/**
-	 * @brief default constructor
-	 *
-	 */
-	ReservationTemplateAttrHelper() {
-	}
-
-	/**
-	 * @brief parameterised constructor
-	 *
-	 */
-	ReservationTemplateAttrHelper(ATTRL* attrList_) : AttrHelper(attrList_) {
-	}
-
-	/**
-	 * @brief default destructor
-	 *
-	 */
-	virtual ~ReservationTemplateAttrHelper() {
-	}
-
-	/**
-	 * @brief method to parse reservation template.
-	 */
-	ATTRL* parseTemplate(void* template_);
+        void TestReservationSession();
 };
-
-}
-
 #endif
+

@@ -35,97 +35,34 @@
  *
  */
 
-#include <AttrHelper.h>
-#include <OutOfResourceException.h>
-#include <SourceInfo.h>
-#include <cstring>
-#include <new>
+#include <ReservationImpl.h>
+#include <ConnectionPool.h>
+#include <PBSProSystem.h>
+#include <ReservationTemplateAttrHelper.h>
 
 namespace drmaa2 {
 
-ATTRL* AttrHelper::createAttribute() {
-	try
-	{
-		_attrCreated = true;
-		ATTRL *_attr = new ATTRL;
-		_attr->next = NULL;
-		_attr->name = NULL;
-		_attr->resource = NULL;
-		_attr->value = NULL;
-		return _attr;
-	} catch (std::bad_alloc &e) {
-		throw OutOfResourceException(SourceInfo(__func__, __LINE__));
-	}
+ReservationImpl::~ReservationImpl() {
+	// TODO Auto-generated destructor stub
 }
 
-void AttrHelper::deleteAttributeList() {
-	ATTRL *curAttr_, *holdAttr_;
-	if(_attrCreated) {
-		if(_attrList == NULL )
-			return;
-
-		for(curAttr_ = _attrList; curAttr_ != NULL; curAttr_ = holdAttr_) {
-			holdAttr_ = curAttr_->next;
-			delete curAttr_;
-		}
-	}
+const ReservationInfo& ReservationImpl::getInfo(void) const {
+	populateReservationInfo();
+	return _rInfo;
 }
 
-void AttrHelper::setAttribute(char* attrName_, char* attrVal_, OPERATION op_) {
-	ATTRL *attr_;
-
-	attr_ = createAttribute();
-
-	attr_->name = attrName_;
-	attr_->value = attrVal_;
-	attr_->op = op_;
-	if (_attrList == NULL) {
-		_attrList = attr_;
-	} else {
-		ADD_NODE(_attrList,attr_);
-	}
-
-	return;
-
+const void ReservationImpl::populateReservationInfo(void) const {
+	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
+	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
+	drms->getReservationInfo(pbsConnPoolObj_, *this);
+	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
 }
 
-char* AttrHelper::getAttribute(char* attrName_, char* attrVal_) {
-	ATTRL *attrTmp_;
-
-	attrTmp_ = _attrList;
-
-	while (attrTmp_) {
-		if (strcmp(attrName_, attrTmp_->name) == 0) {
-			if (attrVal_) {
-				if (strcmp(attrVal_, attrTmp_->resource) == 0) {
-					return (attrTmp_->value);
-				}
-			} else {
-				return (attrTmp_->value);
-			}
-		}
-		attrTmp_ = attrTmp_->next;
-	}
-	return NULL;
+void ReservationImpl::terminate(void) const {
+	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
+	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
+	drms->remove(pbsConnPoolObj_, *this);
+	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
 }
 
-void AttrHelper::setResource(char* resName_, char* resVal_) {
-	ATTRL *attr_;
-
-	attr_ = createAttribute();
-
-	attr_->name = (char *)ATTR_l;
-	attr_->resource = resName_;
-	attr_->value = (char *)resVal_;
-	if (_attrList == NULL) {
-		_attrList = attr_;
-	} else {
-		ADD_NODE(_attrList,attr_);
-	}
-
-	return;
-}
-
-}
-
-
+} /* namespace drmaa2 */

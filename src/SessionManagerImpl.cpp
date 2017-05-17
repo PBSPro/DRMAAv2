@@ -110,8 +110,19 @@ void SessionManagerImpl::destroyJobSession(const string& sessionName_) {
 
 const ReservationSession& SessionManagerImpl::createReservationSession(
 		const string& sessionName_, const string& contact_) {
-	//TODO Add Code here
-	throw std::exception();
+	if (sessionName_.empty()) {
+		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_ARG_LONG));
+	}
+
+	if (_reservationSessionMap.find(sessionName_) == _reservationSessionMap.end()) {
+		string reservationSessionContact_;
+		ReservationSessionImpl reservationSession_(sessionName_, contact_);
+		_reservationSessionMap.insert(std::pair<string, ReservationSessionImpl>(sessionName_,reservationSession_));
+	}
+	ReservationSessionImpl &reservationSessionImplObj_ = _reservationSessionMap.find(sessionName_)->second;
+	ReservationSession& newReservationSession_ = static_cast<ReservationSession&>(reservationSessionImplObj_);
+	return newReservationSession_;
 }
 
 const ReservationSession& SessionManagerImpl::openReservationSession(
@@ -125,7 +136,14 @@ void SessionManagerImpl::closeReservationSession(ReservationSession& session_) {
 }
 
 void SessionManagerImpl::destroyReservationSession(const string& sessionName_) {
-	//TODO Add Code here
+	if (sessionName_.empty()) {
+		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_ARG_LONG));
+	}
+	if (_reservationSessionMap.erase(sessionName_) == 0) {
+		throw InvalidArgumentException(SourceInfo(__func__,__LINE__),
+				Message(INVALID_ARG_LONG));
+	}
 }
 
 const MonitoringSession& SessionManagerImpl::openMonitoringSession(

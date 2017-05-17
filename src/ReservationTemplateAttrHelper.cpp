@@ -38,12 +38,93 @@
 #include "DRMSystem.h"
 #include "AttrHelper.h"
 #include "ReservationTemplateAttrHelper.h"
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <map>
+#include <string.h>
+#include <functional>
+#include <numeric>
+#include <string.h>
+
 
 namespace drmaa2 {
 
 ATTRL* ReservationTemplateAttrHelper::parseTemplate(void* template_) {
+	if(template_ == NULL)
+		return _attrList;
+	stringstream stream_;
+	ReservationTemplate *_rT = static_cast<ReservationTemplate *>(template_);
+	ReservationTemplate &reservationTemplate_ = *_rT;
+	if(!reservationTemplate_.reservationName.empty()) {
+		setAttribute((char *)ATTR_resv_name, (char *)reservationTemplate_.reservationName.c_str());
+	}
+	if((long)reservationTemplate_.startTime > 0) {
+		struct tm * timeinfo;
+		timeinfo = localtime ( &reservationTemplate_.startTime );
+		stream_ << mktime(timeinfo);
+		stream_ >> startTime_;
+		stream_.str("");
+		stream_.clear();
+		setAttribute((char *)ATTR_resv_start, (char *)startTime_.c_str());
+	}
+	if((long)reservationTemplate_.endTime > 0) {
+		struct tm * timeinfo;
+		timeinfo = localtime ( &reservationTemplate_.endTime );
+		stream_ << mktime(timeinfo);
+		stream_ >> endTime_;
+		stream_.str("");
+		stream_.clear();
+		setAttribute((char *)ATTR_resv_end, (char *)endTime_.c_str());
+	}
+	if(reservationTemplate_.duration > 0) {
+		stream_ << reservationTemplate_.duration;
+		stream_ >> durationTime_;
+		stream_.str("");
+		stream_.clear();
+		setResource((char *)WALLTIME, (char *)durationTime_.c_str());
+	}
+	if(reservationTemplate_.minSlots) {
+		stream_ << reservationTemplate_.minSlots;
+		resourceSlot_.append(stream_.str());
+		stream_.str("");
+		stream_.clear();
+		setResource((char *)NCPUS, (char *)resourceSlot_.c_str());
+	}
+	if (reservationTemplate_.minPhysMemory) {
+		stream_ << reservationTemplate_.minPhysMemory << "KB";
+		resourceMemory_.append(stream_.str());
+		stream_.str("");
+		stream_.clear();
+		setResource((char *)MEM, (char *)resourceMemory_.c_str());
+	}
+	if(reservationTemplate_.candidateMachines.size() > 0) {
+		copy(reservationTemplate_.candidateMachines.begin(), reservationTemplate_.candidateMachines.end(), ostream_iterator<string>(stream_,(char *)","));
+		candidateMachines_.assign(stream_.str());
+		candidateMachines_.erase(candidateMachines_.size() - 1, candidateMachines_.size());
+		stream_.str("");
+		stream_.clear();
+		setAttribute((char*) ATTR_auth_h, (char*)candidateMachines_.c_str());
+	}
+	if(reservationTemplate_.machineOS > 0) {
+		switch(reservationTemplate_.machineOS) {
+		case LINUX:
+			setResource((char *)ARCH, (char *)OS_LINUX);
+		default:
+			break;
+		}
+	}
+	if(reservationTemplate_.usersACL.size() > 0) {
+		copy(reservationTemplate_.usersACL.begin(), reservationTemplate_.usersACL.end(), ostream_iterator<string>(stream_,(char *)","));
+		aclUsers_.assign(stream_.str());
+		aclUsers_.erase(aclUsers_.size() - 1, aclUsers_.size());
+		stream_.str("");
+		stream_.clear();
+		setAttribute((char*) ATTR_auth_u, (char*)aclUsers_.c_str());
+	}
 	return _attrList;
 }
+
 }
 
 

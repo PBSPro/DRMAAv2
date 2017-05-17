@@ -88,7 +88,6 @@ void JobSessionTest::TestJobSession() {
 	ja1_.hold();
 	ja1_.terminate();
 	sessionManagerObj_->destroyJobSession(session_);
-	delete sessionManagerObj_;
 	delete &j1_;
 	delete &ja1_;
 }

@@ -162,23 +162,6 @@ typedef enum drmaa2_error {
 
 typedef char *drmaa2_string;
 
-const char *last_error_text[DRMAA2_LASTERROR+1] = {"Success",
-	"Denied by DRMS",
-	"Failed to communicating with DRMS",
-	"Try later",
-	"Session Management",
-	"Operation Timed out",
-	"Internal Error",
-	"Invalid argument",
-	"Invalid state",
-	"Invalid session",
-	"Out of resource",
-	"Unsupported attribute",
-	"Unsupported operation",
-	"Implementation specific error",
-	"Last"};
-
-
 void drmaa2_string_free(drmaa2_string *);
 
 drmaa2_error drmaa2_lasterror(void);
@@ -197,10 +180,26 @@ typedef enum drmaa2_listtype {
 	DRMAA2_RESERVATIONLIST = 5
 }drmaa2_listtype;
 
+/**
+ * @brief Item for the list/dict
+ */
 typedef struct drmaa2_item_s {
-	const void *data;
+	union data {
+		/**
+		 * @brief Value
+		 */
+		const void *value;
+
+		/**
+		 * @brief Key, Value pair
+		 */
+		struct kv_pair {
+			const char *key;
+			const char *value;
+		} kv_pair;
+	} data;
 	struct drmaa2_item_s *next;
-}drmaa2_list_item_s;
+} drmaa2_item_s;
 
 typedef drmaa2_item_s *drmaa2_item;
 
@@ -250,11 +249,14 @@ drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos);
 
 long drmaa2_list_size(const drmaa2_list l);
 
-struct drmaa2_dict_s; /* forward */
+typedef void (*drmaa2_dict_entryfree)(char **key, char **val);
+
+typedef struct drmaa2_dict_s {
+	drmaa2_dict_entryfree free_entry;
+	drmaa2_item head;
+} drmaa2_dict_s;
 
 typedef struct drmaa2_dict_s *drmaa2_dict;
-
-typedef void (*drmaa2_dict_entryfree)(char **key, char **val);
 
 void drmaa2_dict_default_callback(char **key, char **value);
 

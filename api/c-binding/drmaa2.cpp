@@ -52,6 +52,22 @@ extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
 
+const char *last_error_text[DRMAA2_LASTERROR+1] = {"Success",
+	"Denied by DRMS",
+	"Failed to communicating with DRMS",
+	"Try later",
+	"Session Management",
+	"Operation Timed out",
+	"Internal Error",
+	"Invalid argument",
+	"Invalid state",
+	"Invalid session",
+	"Out of resource",
+	"Unsupported attribute",
+	"Unsupported operation",
+	"Implementation specific error",
+	"Last"};
+
 /**
  *  @brief __last_error is thread-local and Thead-safe. Setting it in one
  *  thread  does not affect its value in any other thread.
@@ -208,7 +224,7 @@ void drmaa2_list_free(drmaa2_list * l) {
 		item = head;
 		head = item->next;
 		if ((*l)->free_callback != NULL)
-			(*l)->free_callback((void **) &(item->data));
+			(*l)->free_callback((void **) &(item->data.value));
 		free(item);
 	}
 	free(*l);
@@ -237,7 +253,7 @@ const void *drmaa2_list_get(const drmaa2_list l, const long pos) {
 	long i;
 	for (i = 0; i < pos; i++)
 		current = current->next;
-	return current->data;
+	return current->data.value;
 }
 
 /**
@@ -260,7 +276,7 @@ drmaa2_error drmaa2_list_add(drmaa2_list l, const void *value) {
 	if ((item = (drmaa2_item) malloc(sizeof(drmaa2_item))) == NULL) {
 		return DRMAA2_INTERNAL;
 	}
-	item->data = value;
+	item->data.value = value;
 	item->next = (drmaa2_item)l->head;
 	l->head = item;
 	l->size++;
@@ -292,7 +308,7 @@ drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos) {
 		l->head = prev->next;
 		l->size--;
 		if (l->free_callback != NULL)
-			l->free_callback((void **) prev->data);
+			l->free_callback((void **) prev->data.value);
 		free(prev);
 
 		return DRMAA2_SUCCESS;
@@ -306,7 +322,7 @@ drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos) {
 	current->next = prev->next;
 	l->size--;
 	if (l->free_callback != NULL)
-		l->free_callback((void **) prev->data);
+		l->free_callback((void **) prev->data.value);
 	free(prev);
 
 	return DRMAA2_SUCCESS;
@@ -332,7 +348,7 @@ long drmaa2_list_size(const drmaa2_list l) {
  *  @brief  Assigned default callback function for dictionary
  *
  *  @param[in]	key - key in dictionary
- *  @param[in]	value - valule for key
+ *  @param[in]	value - value for key
  *
  *  @return
  *  		long - size of list
@@ -340,7 +356,14 @@ long drmaa2_list_size(const drmaa2_list l) {
  *
  */
 void drmaa2_dict_default_callback(char **key, char **value) {
-	//TODO Add Code here
+	if(*key) {
+		free(*key);
+		*key = NULL;
+	}
+	if(*value) {
+		free(*value);
+		*value = NULL;
+	}
 }
 
 /**
@@ -353,8 +376,14 @@ void drmaa2_dict_default_callback(char **key, char **value) {
  *
  */
 drmaa2_dict drmaa2_dict_create(const drmaa2_dict_entryfree callback) {
-	//TODO Add Code here
-	return NULL;
+	drmaa2_dict d = (drmaa2_dict) malloc(sizeof(drmaa2_dict_s));
+	if(callback) {
+		d->free_entry = callback;
+	} else {
+		d->free_entry = drmaa2_dict_default_callback;
+	}
+	d->head = NULL;
+	return d;
 }
 
 /**
@@ -366,7 +395,21 @@ drmaa2_dict drmaa2_dict_create(const drmaa2_dict_entryfree callback) {
  *
  */
 void drmaa2_dict_free(drmaa2_dict * d) {
-	//TODO Add Code here
+	if ((*d) == NULL)
+		return;
+
+	drmaa2_item head = (*d)->head;
+	drmaa2_item tmp;
+	while (head != NULL) {
+		tmp = head;
+		head = head->next;
+		if ((*d)->free_entry != NULL)
+			(*d)->free_entry((char **) &(tmp->data.kv_pair.key),
+					(char **) &(tmp->data.kv_pair.value));
+		free(tmp);
+	}
+	free(*d);
+	*d = NULL;
 }
 
 /**
@@ -378,8 +421,17 @@ void drmaa2_dict_free(drmaa2_dict * d) {
  *
  */
 drmaa2_string_list drmaa2_dict_list(const drmaa2_dict d) {
-	//TODO Add Code here
-	return NULL;
+	if (d == NULL)
+		return NULL;
+
+	drmaa2_string_list l = drmaa2_list_create(DRMAA2_STRINGLIST,
+			(drmaa2_list_entryfree) drmaa2_string_free);
+	drmaa2_item item = d->head;
+	while (item != NULL) {
+		drmaa2_list_add(l, item->data.kv_pair.key);
+		item = item->next;
+	}
+	return l;
 }
 
 /**
@@ -392,8 +444,16 @@ drmaa2_string_list drmaa2_dict_list(const drmaa2_dict d) {
  *
  */
 drmaa2_bool drmaa2_dict_has(const drmaa2_dict d, const char *key) {
-	//TODO Add Code here
-	return DRMAA2_TRUE;
+	if (d == NULL && key == NULL)
+		return DRMAA2_FALSE;
+
+	drmaa2_item item = d->head;
+	while (item != NULL) {
+		if (!strcmp(item->data.kv_pair.key, key))
+			return DRMAA2_TRUE;
+		item = item->next;
+	}
+	return DRMAA2_FALSE;
 }
 
 /**
@@ -406,7 +466,15 @@ drmaa2_bool drmaa2_dict_has(const drmaa2_dict d, const char *key) {
  *
  */
 const char *drmaa2_dict_get(const drmaa2_dict d, const char *key) {
-	//TODO Add Code here
+	if (d == NULL && key == NULL)
+		return NULL;
+
+	drmaa2_item item = d->head;
+	while (item != NULL) {
+		if (!strcmp(item->data.kv_pair.key, key))
+			return item->data.kv_pair.value;
+		item = item->next;
+	}
 	return NULL;
 }
 
@@ -421,8 +489,29 @@ const char *drmaa2_dict_get(const drmaa2_dict d, const char *key) {
  *  				 - 	DRMAA2_INVALID_ARGUMENT
  */
 drmaa2_error drmaa2_dict_del(drmaa2_dict d, const char *key) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	if (d == NULL && key == NULL)
+		return DRMAA2_INVALID_ARGUMENT;
+
+	drmaa2_item item = d->head;
+	drmaa2_item prev = NULL;
+
+	while (item != NULL) {
+		if (!strcmp(item->data.kv_pair.key, key)) {
+			if (prev)
+				prev->next = item->next;
+			else
+				d->head = item->next;
+
+			if (d->free_entry != NULL)
+				d->free_entry((char **) &(item->data.kv_pair.key),
+						(char **) &(item->data.kv_pair.value));
+			free(item);
+			return DRMAA2_SUCCESS;
+		}
+		prev = item;
+		item = item->next;
+	}
+	return DRMAA2_INVALID_ARGUMENT;
 }
 
 /**
@@ -437,7 +526,23 @@ drmaa2_error drmaa2_dict_del(drmaa2_dict d, const char *key) {
  *  				 - 	DRMAA2_INVALID_ARGUMENT
  */
 drmaa2_error drmaa2_dict_set(drmaa2_dict d, const char *key, const char *val) {
-	//TODO Add Code here
+	if (d == NULL && key == NULL)
+		return DRMAA2_INVALID_ARGUMENT;
+	drmaa2_item item = d->head;
+	while (item != NULL) {
+		if (!strcmp(item->data.kv_pair.key, key)) {
+			if (d->free_entry != NULL)
+				d->free_entry(NULL, (char **) &(item->data.kv_pair.value));
+			item->data.kv_pair.value = val;
+			return DRMAA2_SUCCESS;
+		}
+		item = item->next;
+	}
+	item = (drmaa2_item) malloc(sizeof(drmaa2_item_s));
+	item->data.kv_pair.key = key;
+	item->data.kv_pair.value = val;
+	item->next = NULL;
+	d->head == NULL ? (d->head = item) : (d->head->next = item);
 	return DRMAA2_SUCCESS;
 }
 

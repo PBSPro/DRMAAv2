@@ -61,7 +61,9 @@ extern "C" {
 #define CMD_RESUME "resume"
 #define NCPUS "ncpus"
 #define MEM "mem"
-
+#define VMEM "vmem"
+#define STATE "state"
+#define FREE "free"
 
 #define ATTRL struct attrl
 #define OPERATION enum batch_op

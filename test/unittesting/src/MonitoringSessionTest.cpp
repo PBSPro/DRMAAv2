@@ -38,35 +38,24 @@
 #include <cppunit/extensions/AutoRegisterSuite.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestAssert.h>
-#include <ReservationSessionTest.h>
+#include <MonitoringSessionTest.h>
 #include <SessionManagerImpl.h>
 #include <PBSProSystem.h>
 #include "drmaa2.hpp"
 #include <string>
-#include <unistd.h>
 
 
 using namespace drmaa2;
 using namespace std;
 
-CPPUNIT_TEST_SUITE_REGISTRATION(ReservationSessionTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(MonitoringSessionTest);
 
-void ReservationSessionTest::TestReservationSession() {
-	string session_("ReservationSession"), contact_(pbs_default());
+void MonitoringSessionTest::TestMonitoringSession() {
+	string contact_(pbs_default());
+	list<string> _machines;
 	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
-	ReservationTemplate rt_;
-	const ReservationSession &resSessionObj_ = sessionManagerObj_->createReservationSession(session_, contact_);
-	rt_.reservationName.assign("DRMAA2RESERVATION");
-	rt_.startTime = time(NULL) + 30;
-	rt_.duration = 1000;
-	rt_.endTime = 0;
-	rt_.minSlots = 1;
-	rt_.minPhysMemory = 30;
-	rt_.usersACL.push_back("root@rampranesh");
-	const ReservationTemplate &rTemplate_ = rt_;
-	const Reservation &res = resSessionObj_.requestReservation(rTemplate_);
-	sleep(5);
-	ReservationInfo _rInfo = res.getInfo();
-	res.terminate();
-	sessionManagerObj_->destroyReservationSession(session_);
+	const MonitoringSession &monSessionObj_ = sessionManagerObj_->openMonitoringSession(contact_);
+	MachineInfoList _mInfo = monSessionObj_.getAllMachines(_machines);
+	const QueueInfoList _qInfo = monSessionObj_.getAllQueues(_machines);
+	sessionManagerObj_->closeMonitoringSession(monSessionObj_);
 }

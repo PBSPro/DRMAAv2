@@ -35,38 +35,71 @@
  *
  */
 
-#include <cppunit/extensions/AutoRegisterSuite.h>
-#include <cppunit/extensions/HelperMacros.h>
-#include <cppunit/TestAssert.h>
-#include <ReservationSessionTest.h>
-#include <SessionManagerImpl.h>
-#include <PBSProSystem.h>
-#include "drmaa2.hpp"
+#ifndef SRC_MONITORINGSESSIONIMPL_H_
+#define SRC_MONITORINGSESSIONIMPL_H_
+
+#include <list>
 #include <string>
-#include <unistd.h>
 
+#include "drmaa2.hpp"
 
-using namespace drmaa2;
 using namespace std;
 
-CPPUNIT_TEST_SUITE_REGISTRATION(ReservationSessionTest);
+namespace drmaa2 {
 
-void ReservationSessionTest::TestReservationSession() {
-	string session_("ReservationSession"), contact_(pbs_default());
-	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
-	ReservationTemplate rt_;
-	const ReservationSession &resSessionObj_ = sessionManagerObj_->createReservationSession(session_, contact_);
-	rt_.reservationName.assign("DRMAA2RESERVATION");
-	rt_.startTime = time(NULL) + 30;
-	rt_.duration = 1000;
-	rt_.endTime = 0;
-	rt_.minSlots = 1;
-	rt_.minPhysMemory = 30;
-	rt_.usersACL.push_back("root@rampranesh");
-	const ReservationTemplate &rTemplate_ = rt_;
-	const Reservation &res = resSessionObj_.requestReservation(rTemplate_);
-	sleep(5);
-	ReservationInfo _rInfo = res.getInfo();
-	res.terminate();
-	sessionManagerObj_->destroyReservationSession(session_);
+class MonitoringSessionImpl : public MonitoringSession {
+public:
+	mutable MachineInfoList _mInfo;
+	mutable ReservationList _rInfo;
+	mutable JobList _jInfo;
+	mutable QueueInfoList _qInfo;
+	/**
+	 * Destructor
+	 */
+	virtual ~MonitoringSessionImpl(void) {
+	};
+
+	/**
+	 * @brief Returns list of machines available in the DRM system as
+	 * 			execution host.
+	 *
+	 * @param[in] machines_ - Filter criteria for machines
+	 *
+	 * @return MachineInfoList
+	 */
+	virtual const MachineInfoList& getAllMachines(
+			const list<string> machines_) const;
+
+	/**
+	 * @brief Returns list reservations visible for the user running
+	 * 			the DRMAA-based application
+	 *
+	 * @param - None
+	 *
+	 * @return ReservationList
+	 */
+	virtual const ReservationList& getAllReservations(void) const;
+
+	/**
+	 * @brief Returns list Jobs visible for the user running
+	 * 			the DRMAA-based application
+	 *
+	 * @param[in] filter_ - Filter criteria
+	 *
+	 * @return JobList
+	 */
+	virtual const JobList& getAllJobs(JobInfo& filter_) const;
+
+	/**
+	 * @brief Returns list of Queues available in the DRM system.
+	 *
+	 * @param[in] queues_ - Filter criteria for queues
+	 *
+	 * @return QueueInfoList
+	 */
+	virtual const QueueInfoList& getAllQueues(const list<string> queues_) const;
+};
+
 }
+
+#endif /* SRC_MONITORINGSESSIONIMPL_H_ */

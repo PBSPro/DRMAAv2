@@ -340,6 +340,8 @@ struct JobTemplate {
  * 			execution host in the DRMS
  */
 struct MachineInfo {
+	MachineInfo(string major_ = string(), string minor_ = string()) : machineOSVersion(major_, minor_) {
+	}
 	string name; /*!< Machine Name*/
 	bool available; /*!< Machine Availability*/
 	long sockets; /*!< Number of sockets in Machine*/
@@ -947,7 +949,8 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~MonitoringSession(void);
+	virtual ~MonitoringSession(void) {
+	};
 
 	/**
 	 * @brief Returns list of machines available in the DRM system as
@@ -958,7 +961,7 @@ public:
 	 * @return MachineInfoList
 	 */
 	virtual const MachineInfoList& getAllMachines(
-			const list<string> machines_) = 0;
+			list<string> machines_) const = 0;
 
 	/**
 	 * @brief Returns list reservations visible for the user running
@@ -968,7 +971,7 @@ public:
 	 *
 	 * @return ReservationList
 	 */
-	virtual const ReservationList& getAllReservations(void) = 0;
+	virtual const ReservationList& getAllReservations(void) const = 0;
 
 	/**
 	 * @brief Returns list Jobs visible for the user running
@@ -978,7 +981,7 @@ public:
 	 *
 	 * @return JobList
 	 */
-	virtual const JobList& getAllJobs(JobInfo& filter_) = 0;
+	virtual const JobList& getAllJobs(JobInfo& filter_) const = 0;
 
 	/**
 	 * @brief Returns list of Queues available in the DRM system.
@@ -987,7 +990,7 @@ public:
 	 *
 	 * @return QueueInfoList
 	 */
-	virtual const QueueInfoList& getAllQueues(list<string> queues_) = 0;
+	virtual const QueueInfoList& getAllQueues(list<string> queues_) const = 0;
 };
 
 /**
@@ -1275,7 +1278,7 @@ public:
 	 *
 	 * @return None
 	 */
-	virtual void closeMonitoringSession(MonitoringSession& session_) = 0;
+	virtual void closeMonitoringSession(const MonitoringSession& session_) = 0;
 
 	/**
 	 * @brief Returns a list of Reservation names that are valid input for

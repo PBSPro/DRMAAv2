@@ -219,7 +219,7 @@ public:
 	 * @brief overridden method from DRMSystem
 	 */
 	virtual ReservationList getAllReservations(
-			const Connection & connection_) throw ();
+			const Connection & connection_) throw (ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
@@ -234,16 +234,17 @@ public:
 	 * @brief overridden method from DRMSystem
 	 */
 	virtual JobList getJobs(const Connection & connection_,
-			const JobInfo& filter_) throw ();
+			const JobInfo& filter_) throw (ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual MachineInfoList getAllMachines(
-			const Connection & connection_) throw ();
+	virtual MachineInfoList getAllMachines(const Connection & connection_,
+			list<string> machines_) throw (ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */
-	virtual QueueInfoList getAllQueues(const Connection & connection_) throw ();
+	virtual QueueInfoList getAllQueues(const Connection & connection_,
+			list<string> queue_) throw (ImplementationSpecificException);
 	/**
 	 * @brief overridden method from DRMSystem
 	 */

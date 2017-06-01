@@ -38,7 +38,7 @@
 #include <Message.h>
 #include <PBSConnection.h>
 #include <PBSIFLExtend.h>
-#include <PBSJobImpl.h>
+#include <JobImpl.h>
 #include <PBSProSystem.h>
 #include <cstdlib>
 #include <ctime>
@@ -54,11 +54,13 @@
 #include <InvalidStateException.h>
 #include <ImplementationSpecificException.h>
 #include <SourceInfo.h>
-#include <PBSJobArrayImpl.h>
+#include <JobArrayImpl.h>
 #include <ReservationImpl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sstream>
+#include <algorithm>
 
 namespace drmaa2 {
 pthread_mutex_t PBSProSystem::_posixMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -114,7 +116,7 @@ Job* PBSProSystem::runJob(const Connection& connection_,
 	if (jobIdFromDRMS_) {
 		string jobId_(jobIdFromDRMS_);
 		free(jobIdFromDRMS_);
-		return new PBSJobImpl(jobId_, jobTemplate_);
+		return new JobImpl(jobId_, jobTemplate_);
 	} else {
 		throw ImplementationSpecificException(pbs_errno,
 		DRMAA2_SOURCEINFO());
@@ -303,7 +305,7 @@ JobArray* PBSProSystem::runJobArray(const Connection& connection_,
 	if(jobIdFromDRMS_) {
 		string jobArrayId_(jobIdFromDRMS_);
 		free(jobIdFromDRMS_);
-		return new PBSJobArrayImpl(jobArrayId_, jobTemplate_);
+		return new JobArrayImpl(jobArrayId_, jobTemplate_);
 	} else {
 		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
 	}
@@ -404,13 +406,33 @@ void PBSProSystem::remove(const Connection& connection_,
 }
 
 ReservationList PBSProSystem::getAllReservations(
-		const Connection& connection_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+		const Connection& connection_) throw (ImplementationSpecificException) {
+	ReservationList _rList;
+	list<string> _allReservations;
+	const PBSConnection *pbsCnHolder_ = dynamic_cast<const PBSConnection*>(&connection_);
+	struct batch_status *batchResponse_ = NULL, *tmpBatchRsp_ = NULL;
+	batchResponse_ = pbs_statresv(pbsCnHolder_->getFd(), NULL, NULL, NULL);
+	if(batchResponse_ == NULL)
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
+	tmpBatchRsp_ = batchResponse_;
+	while(tmpBatchRsp_) {
+		if (tmpBatchRsp_->name != NULL) {
+			_allReservations.push_back(string(tmpBatchRsp_->name));
+		}
+		tmpBatchRsp_ = tmpBatchRsp_->next;
+	}
+	for (list<string>::iterator iterator = _allReservations.begin();
+		iterator != _allReservations.end(); ++iterator) {
+		ReservationImpl *_reservation = new ReservationImpl(*iterator);
+		_rList.push_back(_reservation);
+	}
+	if(batchResponse_)
+		pbs_statfree(batchResponse_);
+	return _rList;
 }
 
 JobList PBSProSystem::getJobs(const Connection& connection_,
-		const JobInfo& filter_) throw () {
+		const JobInfo& filter_) throw (ImplementationSpecificException) {
 	JobList _jList;
 	list<string> _allJobs;
 	struct batch_status *batchRsp_ = (struct batch_status *) 0, *tmpBatchRsp_ =
@@ -418,6 +440,8 @@ JobList PBSProSystem::getJobs(const Connection& connection_,
 	const PBSConnection *pbsCnHolder_ =
 			dynamic_cast<const PBSConnection*>(&connection_);
 	batchRsp_ = pbs_statjob(pbsCnHolder_->getFd(), NULL, NULL, (char *) "x");
+	if(batchRsp_ == NULL)
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
 	tmpBatchRsp_ = batchRsp_;
 	while (tmpBatchRsp_) {
 		if (tmpBatchRsp_->name != NULL) {
@@ -427,7 +451,7 @@ JobList PBSProSystem::getJobs(const Connection& connection_,
 	}
 	for (list<string>::iterator iterator = _allJobs.begin();
 			iterator != _allJobs.end(); ++iterator) {
-		PBSJobImpl *_job = new PBSJobImpl(*iterator);
+		JobImpl *_job = new JobImpl(*iterator);
 		JobInfo _jInfo = _job->getJobInfo();
 		if (!filter_.jobId.empty() && _jInfo.jobId != filter_.jobId)
 			continue;
@@ -458,32 +482,105 @@ JobList PBSProSystem::getJobs(const Connection& connection_,
 	return _jList;
 }
 
-MachineInfoList PBSProSystem::getAllMachines(
-		const Connection& connection_) throw () {
-	//TODO Add Code here
-	throw std::exception();
+MachineInfoList PBSProSystem::getAllMachines(const Connection& connection_,
+	list<string> machines_) throw (ImplementationSpecificException) {
+	MachineInfoList _mList;
+	char *attrVal_;
+	string _machineName;
+	struct batch_status *batchRsp_ = (struct batch_status *) 0,
+				*tmpBatchRsp_ = (struct batch_status *) 0;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	batchRsp_ = pbs_statvnode(pbsCnHolder_->getFd(), NULL, NULL, NULL);
+	if(batchRsp_ == NULL)
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
+	tmpBatchRsp_ = batchRsp_;
+	while(tmpBatchRsp_) {
+		MachineInfo _mInfo;
+		if(tmpBatchRsp_->name) {
+			if(machines_.size() > 0) {
+				_machineName.assign(tmpBatchRsp_->name);
+				list<string>::iterator _findMachine = find(machines_.begin(),machines_.end(), _machineName);
+
+				if(_findMachine == machines_.end()) {
+					tmpBatchRsp_ = tmpBatchRsp_->next;
+					continue;
+				}
+			}
+			_mInfo.name.assign(tmpBatchRsp_->name);
+		} else
+			_mInfo.name.clear();
+		if(tmpBatchRsp_->attribs) {
+			JobTemplateAttrHelper _attr(tmpBatchRsp_->attribs);
+			attrVal_ = _attr.getAttribute((char *)ATTR_rescavail, (char *)MEM);
+			if(attrVal_)
+				_mInfo.physMemory = atol(attrVal_);
+			else
+				_mInfo.physMemory = 0;
+			attrVal_ = _attr.getAttribute((char *)ATTR_rescavail, (char *)NCPUS);
+			if(attrVal_)
+				_mInfo.coresPerSocket = atol(attrVal_);
+			else
+				_mInfo.coresPerSocket = 0;
+			attrVal_ = _attr.getAttribute((char*)ATTR_rescavail, (char *)VMEM);
+			if(attrVal_)
+				_mInfo.virtMemory = atol(attrVal_);
+			else
+				_mInfo.virtMemory = 0;
+			attrVal_ = _attr.getAttribute((char*)ATTR_rescavail, (char *)ARCH);
+			if(attrVal_) {
+				if(strcmp((char *)attrVal_, (char *)OS_LINUX) == 0) {
+					_mInfo.machineOS = LINUX;
+				} else
+					_mInfo.machineOS = OTHER_OS;
+			} else
+				_mInfo.machineOS = OTHER_OS;
+			attrVal_ = _attr.getAttribute((char *)STATE, NULL);
+			if(attrVal_) {
+				if(strcmp(attrVal_, FREE))
+					_mInfo.available = true;
+				else
+					_mInfo.available = false;
+			} else
+				_mInfo.available = false;
+			_mInfo.machineOSVersion.major = string();
+			tmpBatchRsp_ = tmpBatchRsp_->next;
+		}
+		_mList.push_back(_mInfo);
+	}
+	return _mList;
 }
 
-QueueInfoList PBSProSystem::getAllQueues(const Connection& connection_) throw () {
-	struct batch_status *batchRsp_ = (struct batch_status *) 0, *tmpBatchRsp_ =
-			(struct batch_status *) 0;
-	const PBSConnection *pbsCnHolder_ =
-			dynamic_cast<const PBSConnection*>(&connection_);
-	QueueInfoList queueList_;
+QueueInfoList PBSProSystem::getAllQueues (const Connection& connection_,
+	list<string> queue_) throw (ImplementationSpecificException) {
+	struct batch_status *batchRsp_ = (struct batch_status *) 0,
+			*tmpBatchRsp_ = (struct batch_status *) 0;
+	const PBSConnection *pbsCnHolder_ = static_cast<const PBSConnection*>(&connection_);
+	QueueInfoList _queueList;
+	string _queueName;
 
 	batchRsp_ = pbs_statque(pbsCnHolder_->getFd(), NULL, NULL, NULL);
-	tmpBatchRsp_ = batchRsp_;
+	if(batchRsp_ == NULL)
+		throw ImplementationSpecificException(pbs_errno,SourceInfo(__func__,__LINE__));
+	tmpBatchRsp_ =  batchRsp_;
 	while (tmpBatchRsp_ != NULL) {
 		if (tmpBatchRsp_->name != NULL) {
-			struct QueueInfo queueInfo_;
-			queueInfo_.name.assign(tmpBatchRsp_->name);
-			queueList_.push_back(queueInfo_);
+			if(queue_.size() > 0) {
+				_queueName.assign(tmpBatchRsp_->name);
+				list<string>::iterator _findQueue = find(queue_.begin(), queue_.end(), _queueName);
+				if(_findQueue == queue_.end()) {
+					tmpBatchRsp_ = tmpBatchRsp_->next;
+					continue;
+				}
+			}
+			struct QueueInfo _queueInfo;
+			_queueInfo.name.assign(tmpBatchRsp_->name);
+			_queueList.push_back(_queueInfo);
 		}
 		tmpBatchRsp_ = tmpBatchRsp_->next;
 	}
-	if (batchRsp_)
+	if(batchRsp_)
 		pbs_statfree(batchRsp_);
-	return queueList_;
+	return _queueList;
 }
 
 string PBSProSystem::getDRMSName(const Connection& connection_) throw () {

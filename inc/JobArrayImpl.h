@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_PBSJOBARRAYIMPL_H_
-#define SRC_PBSJOBARRAYIMPL_H_
+#ifndef SRC_JOBARRAYIMPL_H_
+#define SRC_JOBARRAYIMPL_H_
 
 #include <string>
 
@@ -46,37 +46,37 @@ using namespace std;
 
 namespace drmaa2 {
 /**
- * @class PBSJobArrayImpl
+ * @class JobArrayImpl
  * @brief Concrete class for JobArray
  *
  */
-class PBSJobArrayImpl : public JobArray {
+class JobArrayImpl : public JobArray {
 	const string _jobId;
 	JobTemplate _jt;
 	JobList _jobList;
 	/**
 	 * Constructor
 	 */
-	PBSJobArrayImpl() {};
+	JobArrayImpl() {};
 	/**
 	 * Copy constructor
 	 */
-	PBSJobArrayImpl(const PBSJobArrayImpl &jobImpl_) {};
+	JobArrayImpl(const JobArrayImpl &jobImpl_) {};
 public:
 	/**
 	 * Parameterized constructor
 	 */
-	PBSJobArrayImpl(const string& jobId_):_jobId(jobId_) {
+	JobArrayImpl(const string& jobId_):_jobId(jobId_) {
 	}
 	/**
 	 * Parameterized constructor
 	 */
-	PBSJobArrayImpl(const string& jobId_, const JobTemplate& jt_):_jobId(jobId_), _jt(jt_) {
+	JobArrayImpl(const string& jobId_, const JobTemplate& jt_):_jobId(jobId_), _jt(jt_) {
 	};
 	/**
 	 * Destructor
 	 */
-	virtual ~PBSJobArrayImpl(void);
+	virtual ~JobArrayImpl(void);
 
 	/**
 	 * @brief Returns Job array ID
@@ -176,4 +176,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_PBSJOBARRAYIMPL_H_ */
+#endif /* SRC_JOBARRAYIMPL_H_ */

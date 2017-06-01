@@ -148,11 +148,10 @@ void SessionManagerImpl::destroyReservationSession(const string& sessionName_) {
 
 const MonitoringSession& SessionManagerImpl::openMonitoringSession(
 		const string& contact_) {
-	//TODO Add Code here
-	throw std::exception();
+	return _mSession;
 }
 
-void SessionManagerImpl::closeMonitoringSession(MonitoringSession& session_) {
+void SessionManagerImpl::closeMonitoringSession(const MonitoringSession& session_) {
 }
 
 const StringList& SessionManagerImpl::getReservationSessionNames(void) {

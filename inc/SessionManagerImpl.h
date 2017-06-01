@@ -43,6 +43,7 @@
 #include <string>
 #include <JobSessionImpl.h>
 #include <ReservationSessionImpl.h>
+#include <MonitoringSessionImpl.h>
 
 #include "drmaa2.hpp"
 
@@ -65,6 +66,7 @@ class SessionManagerImpl: public SessionManager {
 private:
 	map<string, JobSessionImpl> _jobSessionMap;
 	map<string, ReservationSessionImpl> _reservationSessionMap;
+	MonitoringSessionImpl _mSession;
 	static pthread_mutex_t _posixMutex;
 
 	/**
@@ -141,7 +143,7 @@ public:
 	/**
 	 * @brief overridden method from SessionManager
 	 */
-	virtual void closeMonitoringSession(MonitoringSession& session_);
+	virtual void closeMonitoringSession(const MonitoringSession& session_);
 	/**
 	 * @brief overridden method from SessionManager
 	 */

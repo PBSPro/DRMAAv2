@@ -34,39 +34,16 @@
  * trademark licensing policies.
  *
  */
-
-#include <cppunit/extensions/AutoRegisterSuite.h>
+#ifndef MONITORINGSESSIONTEST_H_
+#define MONITORINGSESSIONTEST_H_
 #include <cppunit/extensions/HelperMacros.h>
-#include <cppunit/TestAssert.h>
-#include <ReservationSessionTest.h>
-#include <SessionManagerImpl.h>
-#include <PBSProSystem.h>
-#include "drmaa2.hpp"
-#include <string>
-#include <unistd.h>
 
+class MonitoringSessionTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(MonitoringSessionTest);
+        CPPUNIT_TEST(TestMonitoringSession);
+        CPPUNIT_TEST_SUITE_END();
+public:
+        void TestMonitoringSession();
+};
+#endif
 
-using namespace drmaa2;
-using namespace std;
-
-CPPUNIT_TEST_SUITE_REGISTRATION(ReservationSessionTest);
-
-void ReservationSessionTest::TestReservationSession() {
-	string session_("ReservationSession"), contact_(pbs_default());
-	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
-	ReservationTemplate rt_;
-	const ReservationSession &resSessionObj_ = sessionManagerObj_->createReservationSession(session_, contact_);
-	rt_.reservationName.assign("DRMAA2RESERVATION");
-	rt_.startTime = time(NULL) + 30;
-	rt_.duration = 1000;
-	rt_.endTime = 0;
-	rt_.minSlots = 1;
-	rt_.minPhysMemory = 30;
-	rt_.usersACL.push_back("root@rampranesh");
-	const ReservationTemplate &rTemplate_ = rt_;
-	const Reservation &res = resSessionObj_.requestReservation(rTemplate_);
-	sleep(5);
-	ReservationInfo _rInfo = res.getInfo();
-	res.terminate();
-	sessionManagerObj_->destroyReservationSession(session_);
-}

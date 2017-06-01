@@ -461,7 +461,7 @@ public:
 	 *
 	 */
 	virtual ReservationList getAllReservations(
-			const Connection & connection_) throw () = 0;
+			const Connection & connection_) throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Get reservation from DRMS
@@ -505,12 +505,13 @@ public:
 	 *
 	 */
 	virtual JobList getJobs(const Connection & connection_,
-			const JobInfo& filter_) throw () = 0;
+			const JobInfo& filter_) throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Gets all machine info from DRMS
 	 *
 	 * @param[in] connection_ - connection object
+	 * @param[in] machines_ - list of machines to get info
 	 *
 	 * @throw DrmCommunicationException - Communication errors while
 	 * 									sending/receiving data from/to DRMS
@@ -520,13 +521,14 @@ public:
 	 * @return - MachineInfoList
 	 *
 	 */
-	virtual MachineInfoList getAllMachines(
-			const Connection & connection_) throw () = 0;
+	virtual MachineInfoList getAllMachines(const Connection & connection_,
+			const list<string> machines_) throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Gets all queue info from DRMS
 	 *
 	 * @param[in] connection_ - connection object
+	 * @param[in] queue_ - list of queue to get info
 	 *
 	 * @throw DrmCommunicationException - Communication errors while
 	 * 									sending/receiving data from/to DRMS
@@ -536,7 +538,8 @@ public:
 	 * @return - QueueInfoList
 	 *
 	 */
-	virtual QueueInfoList getAllQueues(const Connection & connection_) throw () = 0;
+	virtual QueueInfoList getAllQueues(const Connection & connection_,
+			const list<string> queue_) throw (ImplementationSpecificException) = 0;
 
 	/**
 	 * @brief Gets DRMS Name

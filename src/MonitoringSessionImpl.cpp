@@ -35,74 +35,43 @@
  *
  */
 
-#include <PBSJobArrayImpl.h>
+#include <drmaa2.hpp>
+#include <MonitoringSessionImpl.h>
 #include <ConnectionPool.h>
 #include <PBSProSystem.h>
-#include <JobTemplateAttrHelper.h>
-#include <Drmaa2Exception.h>
-#include <PBSJobImpl.h>
-#include <stdlib.h>
-#include <pbs_ifl.h>
 
 namespace drmaa2 {
 
-PBSJobArrayImpl::~PBSJobArrayImpl() {
-	// TODO Auto-generated destructor stub
-}
-const string& PBSJobArrayImpl::getJobArrayId(void) const {
-	return _jobId;
-}
-
-JobList& PBSJobArrayImpl::getJobs(void) {
-	JobInfo filter_;
+const MachineInfoList& MonitoringSessionImpl::getAllMachines(const list<string> machines_) const {
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	_jobList = drms->getJobs(pbsConnPoolObj_, filter_);
+	_mInfo = drms->getAllMachines(pbsConnPoolObj_, machines_);
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
-	return _jobList;
+	return _mInfo;
 }
 
-const JobTemplate& PBSJobArrayImpl::getJobTemplate(void) const {
-	return _jt;
-}
-
-void PBSJobArrayImpl::suspend(void) const {
+const ReservationList& MonitoringSessionImpl::getAllReservations(void) const {
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->suspend(pbsConnPoolObj_, *this);
+	_rInfo = drms->getAllReservations(pbsConnPoolObj_);
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	return _rInfo;
 }
 
-void PBSJobArrayImpl::resume(void) const {
+const JobList& MonitoringSessionImpl::getAllJobs(JobInfo& filter_) const {
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->resume(pbsConnPoolObj_, *this);
+	_jInfo = drms->getJobs(pbsConnPoolObj_, filter_);
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+	return _jInfo;
 }
 
-void PBSJobArrayImpl::hold(void) const {
+const QueueInfoList& MonitoringSessionImpl::getAllQueues(list<string> queues_) const {
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->hold(pbsConnPoolObj_, *this);
+	_qInfo = drms->getAllQueues(pbsConnPoolObj_, queues_);
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
-}
-
-void PBSJobArrayImpl::release(void) const {
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->release(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
-}
-
-void PBSJobArrayImpl::terminate(void) const {
-	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
-	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	drms->terminate(pbsConnPoolObj_, *this);
-	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
-}
-
-void PBSJobArrayImpl::reap(void) const {
-
+	return _qInfo;
 }
 
 }

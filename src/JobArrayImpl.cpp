@@ -35,15 +35,26 @@
  *
  */
 
-#include <JobSessionImpl.h>
+#include <JobArrayImpl.h>
 #include <ConnectionPool.h>
 #include <PBSProSystem.h>
-#include <PBSConnection.h>
-#include <JobArrayImpl.h>
+#include <JobTemplateAttrHelper.h>
+#include <Drmaa2Exception.h>
+#include <JobImpl.h>
+#include <stdlib.h>
+#include <pbs_ifl.h>
 
 namespace drmaa2 {
 
-const JobList& JobSessionImpl::getJobs(const JobInfo& filter_) {
+JobArrayImpl::~JobArrayImpl() {
+	// TODO Auto-generated destructor stub
+}
+const string& JobArrayImpl::getJobArrayId(void) const {
+	return _jobId;
+}
+
+JobList& JobArrayImpl::getJobs(void) {
+	JobInfo filter_;
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
 	_jobList = drms->getJobs(pbsConnPoolObj_, filter_);
@@ -51,40 +62,47 @@ const JobList& JobSessionImpl::getJobs(const JobInfo& filter_) {
 	return _jobList;
 }
 
-const JobArray& JobSessionImpl::getJobArray(const string& jobArrayId_) {
-	JobArrayImpl *jobArrayImpl_ = new JobArrayImpl(jobArrayId_);
-	JobArray& jobArray_ = static_cast<JobArray&>(*jobArrayImpl_);
-	return jobArray_;
+const JobTemplate& JobArrayImpl::getJobTemplate(void) const {
+	return _jt;
 }
 
-Job& JobSessionImpl::runJob(const JobTemplate& jobTemplate_) const {
-	Job *job_;
+void JobArrayImpl::suspend(void) const {
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	job_ = (Job *)drms->runJob(pbsConnPoolObj_, jobTemplate_);
+	drms->suspend(pbsConnPoolObj_, *this);
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
-	return *job_;
 }
 
-JobArray& JobSessionImpl::runBulkJobs(const JobTemplate& jobTemplate_,
-		const long beginIndex_, const long endIndex_, const long step_,
-		const long maxParallel_) const {
-	JobArray *jobArray_;
-	PBSConnection pbsconn_(pbs_default(), 0, 0);
+void JobArrayImpl::resume(void) const {
 	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
-	jobArray_ = (JobArray *)drms->runJobArray(pbsConnPoolObj_, jobTemplate_,
-			beginIndex_, endIndex_, step_, maxParallel_);
+	drms->resume(pbsConnPoolObj_, *this);
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
-	return *jobArray_;
 }
 
-const Job& JobSessionImpl::waitAnyStarted(const JobList& jobs_,
-		const TimeAmount timeout_) {
+void JobArrayImpl::hold(void) const {
+	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
+	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
+	drms->hold(pbsConnPoolObj_, *this);
+	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
 }
 
-const Job& JobSessionImpl::waitAnyTerminated(const JobList& jobs_,
-		const TimeAmount timeout_) {
+void JobArrayImpl::release(void) const {
+	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
+	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
+	drms->release(pbsConnPoolObj_, *this);
+	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+}
+
+void JobArrayImpl::terminate(void) const {
+	const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
+	DRMSystem *drms = Singleton<DRMSystem, PBSProSystem>::getInstance();
+	drms->terminate(pbsConnPoolObj_, *this);
+	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
+}
+
+void JobArrayImpl::reap(void) const {
+
 }
 
 }

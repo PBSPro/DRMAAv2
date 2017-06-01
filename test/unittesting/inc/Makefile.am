@@ -38,5 +38,6 @@
 noinst_HEADERS = \
 	ConnectionPoolTest.h \
 	drmaa2listTest.h \
-	JobSessionTest.h
-	ReservationSessionTest.h
+	JobSessionTest.h \
+	ReservationSessionTest.h \
+	MonitoringSessionTest.h

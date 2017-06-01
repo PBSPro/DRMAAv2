@@ -40,7 +40,7 @@
 #include <JobTemplateAttrHelper.h>
 #include <PBSConnection.h>
 #include <PBSIFLExtend.h>
-#include <PBSJobImpl.h>
+#include <JobImpl.h>
 #include <PBSProSystem.h>
 #include <stddef.h>
 #include <cstdlib>
@@ -49,20 +49,20 @@
 
 namespace drmaa2 {
 
-PBSJobImpl::~PBSJobImpl() {
+JobImpl::~JobImpl() {
 	// TODO Auto-generated destructor stub
 }
 
-const string& PBSJobImpl::getJobId(void) const {
+const string& JobImpl::getJobId(void) const {
 	return _jobId;
 }
 
-const JobInfo& PBSJobImpl::getJobInfo(void) const {
+const JobInfo& JobImpl::getJobInfo(void) const {
 	populateJobInfo();
 	return _jobInfo;
 }
 
-const void PBSJobImpl::populateJobInfo(void) const {
+const void JobImpl::populateJobInfo(void) const {
 	char *attrVal_;
 	_jobInfo.jobId = _jobId;
 	PBSConnection pbsconn_(pbs_default(), 0, 0);
@@ -164,7 +164,7 @@ const void PBSJobImpl::populateJobInfo(void) const {
 	ConnectionPool::getInstance()->returnConnection(pbsConnPoolObj_);
 }
 
-const JobState& PBSJobImpl::getState(string& subState) {
+const JobState& JobImpl::getState(string& subState) {
 	try {
 		const Connection &pbsConnPoolObj_ = ConnectionPool::getInstance()->getConnection();
 		_jobState = Singleton<DRMSystem, PBSProSystem>::getInstance()->state(
@@ -178,11 +178,11 @@ const JobState& PBSJobImpl::getState(string& subState) {
 	return _jobState;
 }
 
-const JobTemplate& PBSJobImpl::getJobTemplate(void) const {
+const JobTemplate& JobImpl::getJobTemplate(void) const {
 	return _jt;
 }
 
-void PBSJobImpl::suspend(void) const throw () {
+void JobImpl::suspend(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -195,7 +195,7 @@ void PBSJobImpl::suspend(void) const throw () {
 	}
 }
 
-void PBSJobImpl::resume(void) const throw () {
+void JobImpl::resume(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -208,7 +208,7 @@ void PBSJobImpl::resume(void) const throw () {
 	}
 }
 
-void PBSJobImpl::hold(void) const throw () {
+void JobImpl::hold(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -221,7 +221,7 @@ void PBSJobImpl::hold(void) const throw () {
 	}
 }
 
-void PBSJobImpl::release(void) const throw () {
+void JobImpl::release(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -234,7 +234,7 @@ void PBSJobImpl::release(void) const throw () {
 	}
 }
 
-void PBSJobImpl::terminate(void) const throw () {
+void JobImpl::terminate(void) const throw () {
 	try {
 		const Connection &conn_ =
 				ConnectionPool::getInstance()->getConnection();
@@ -247,14 +247,14 @@ void PBSJobImpl::terminate(void) const throw () {
 	}
 }
 
-void PBSJobImpl::reap(void) const throw (){
+void JobImpl::reap(void) const throw (){
 	return;
 }
 
-void PBSJobImpl::waitStarted(const TimeAmount& timeout_) throw (){
+void JobImpl::waitStarted(const TimeAmount& timeout_) throw (){
 }
 
-void PBSJobImpl::waitTerminated(TimeAmount& timeout_) throw (){
+void JobImpl::waitTerminated(TimeAmount& timeout_) throw (){
 }
 
 } /* namespace drmaa2 */

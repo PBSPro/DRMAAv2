@@ -1,4 +1,3 @@
-
 #
 #  Copyright (C) 1994-2017 Altair Engineering, Inc.
 #  For more information, contact Altair at www.altair.com.
@@ -39,7 +38,7 @@
 
 AC_PREREQ([2.63])
 AC_INIT([DRMAAV2],[0.0], [pbssupport@altair.com]) 
-$ versioning 
+# versioning 
 DRMAA_NAME="DRMAAV2"
 DRMAA_MAJOR_VERSION=2
 DRMAA_MINOR_VERSION=2
@@ -67,7 +66,8 @@ AC_LANG(C++)
 # check for macros 
 AC_DEBUG
 AC_CHECK_FUNCS([strchr])
-AC_ENABLE_DOXYGEN([1.8.5])
+# Doxygen support
+DX_INIT_DOXYGEN($DRMAA_NAME, doc/Doxyfile.in)
 
 AC_TDD_GCOV
 AC_SUBST(COVERAGE_CFLAGS)
@@ -85,7 +85,6 @@ AC_CONFIG_FILES(Makefile
 		src/Makefile
 		inc/Makefile
 		api/Makefile
-		doc/Makefile
 		test/Makefile
 		test/unittesting/Makefile
 		test/unittesting/src/Makefile

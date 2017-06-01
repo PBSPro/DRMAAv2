@@ -34,12 +34,14 @@
 #  "PBS Professional®", and "PBS Pro™" and Altair’s logos is subject to Altair's 
 #  trademark licensing policies.
 #
-SUBDIRS=inc src api doc test
+SUBDIRS=inc src api test
 
 ACLOCAL_AMFLAGS=-I m4
 
 DESTDIR=libs_final
 
+@DX_RULES@
+
 clean-local:
-	rm -rf *.info *.gcno *.png *.html *.o *.lo
+	rm -rf *.info *.gcno *.png *.html *.o *.lo $(DX_CLEANFILES)
 

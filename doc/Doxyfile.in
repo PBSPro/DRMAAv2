@@ -1,0 +1,488 @@
+#
+#  Copyright (C) 1994-2017 Altair Engineering, Inc.
+#  For more information, contact Altair at www.altair.com.
+#   
+#  This file is part of the PBS Professional ("PBS Pro") software.
+#  
+#  Open Source License Information:
+#   
+#  PBS Pro is free software. You can redistribute it and/or modify it under the
+#  terms of the GNU Affero General Public License as published by the Free 
+#  Software Foundation, either version 3 of the License, or (at your option) any 
+#  later version.
+#   
+#  PBS Pro is distributed in the hope that it will be useful, but WITHOUT ANY 
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+#   
+#  You should have received a copy of the GNU Affero General Public License along 
+#  with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   
+#  Commercial License Information: 
+#  
+#  The PBS Pro software is licensed under the terms of the GNU Affero General 
+#  Public License agreement ("AGPL"), except where a separate commercial license 
+#  agreement for PBS Pro version 14 or later has been executed in writing with Altair.
+#   
+#  Altair’s dual-license business model allows companies, individuals, and 
+#  organizations to create proprietary derivative works of PBS Pro and distribute 
+#  them - whether embedded or bundled with other software - under a commercial 
+#  license agreement.
+#  
+#  Use of Altair’s trademarks, including but not limited to "PBS™", 
+#  "PBS Professional®", and "PBS Pro™" and Altair’s logos is subject to Altair's 
+#  trademark licensing policies.
+#
+
+# Project name 
+PROJECT_NAME           = $(PROJECT)
+
+# Project version
+PROJECT_NUMBER         = $(VERSION)
+
+#OUT dir
+OUTPUT_DIRECTORY       = $(DOCDIR)
+
+
+OUTPUT_LANGUAGE        = English
+
+
+BRIEF_MEMBER_DESC      = YES
+
+
+REPEAT_BRIEF           = YES
+
+
+ALWAYS_DETAILED_SEC    = NO
+
+
+INLINE_INHERITED_MEMB  = YES
+
+
+FULL_PATH_NAMES        = YES
+
+
+STRIP_FROM_PATH        = $(SRCDIR)
+
+
+SHORT_NAMES            = NO
+
+
+JAVADOC_AUTOBRIEF      = YES
+
+
+MULTILINE_CPP_IS_BRIEF = NO
+
+
+INHERIT_DOCS           = YES
+
+
+DISTRIBUTE_GROUP_DOC   = NO
+
+
+TAB_SIZE               = 4
+
+
+ALIASES                =
+
+
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+
+OPTIMIZE_OUTPUT_JAVA   = NO
+
+
+SUBGROUPING            = YES
+
+
+EXTRACT_ALL            = YES
+
+
+EXTRACT_PRIVATE        = YES
+
+
+EXTRACT_STATIC         = YES
+
+
+EXTRACT_LOCAL_CLASSES  = YES
+
+
+HIDE_UNDOC_MEMBERS     = NO
+
+
+HIDE_UNDOC_CLASSES     = NO
+
+
+HIDE_FRIEND_COMPOUNDS  = NO
+
+
+HIDE_IN_BODY_DOCS      = NO
+
+
+INTERNAL_DOCS          = NO
+
+
+CASE_SENSE_NAMES       = YES
+
+
+HIDE_SCOPE_NAMES       = NO
+
+
+SHOW_INCLUDE_FILES     = YES
+
+
+INLINE_INFO            = YES
+
+
+SORT_MEMBER_DOCS       = YES
+
+
+GENERATE_TODOLIST      = YES
+
+
+GENERATE_TESTLIST      = YES
+
+
+GENERATE_BUGLIST       = YES
+
+
+GENERATE_DEPRECATEDLIST= YES
+
+
+ENABLED_SECTIONS       =
+
+
+MAX_INITIALIZER_LINES  = 0
+
+
+SHOW_USED_FILES        = YES
+
+
+
+QUIET                  = YES
+
+
+WARNINGS               = YES
+
+
+WARN_IF_UNDOCUMENTED   = YES
+
+
+WARN_IF_DOC_ERROR      = YES
+
+
+WARN_FORMAT            = "$file:$line: $text"
+
+
+WARN_LOGFILE           =
+
+
+
+INPUT                  = $(SRCDIR)
+
+
+FILE_PATTERNS          = 
+
+
+RECURSIVE              = YES
+
+
+EXCLUDE                =
+
+
+EXCLUDE_SYMLINKS       = NO
+
+
+EXCLUDE_PATTERNS       =
+
+
+EXAMPLE_PATH           =
+
+
+EXAMPLE_PATTERNS       =
+
+
+EXAMPLE_RECURSIVE      = NO
+
+
+IMAGE_PATH             =
+
+
+INPUT_FILTER           =
+
+
+FILTER_SOURCE_FILES    = NO
+
+
+
+SOURCE_BROWSER         = YES
+
+
+INLINE_SOURCES         = NO
+
+
+STRIP_CODE_COMMENTS    = YES
+
+
+REFERENCED_BY_RELATION = YES
+
+
+REFERENCES_RELATION    = YES
+
+
+VERBATIM_HEADERS       = YES
+
+
+
+ALPHABETICAL_INDEX     = YES
+
+
+COLS_IN_ALPHA_INDEX    = 5
+
+
+IGNORE_PREFIX          =
+
+
+
+GENERATE_HTML          = $(GENERATE_HTML)
+
+
+HTML_OUTPUT            = html
+
+
+HTML_FILE_EXTENSION    = .html
+
+
+HTML_HEADER            =
+
+
+HTML_FOOTER            =
+
+
+HTML_STYLESHEET        =
+
+
+GENERATE_HTMLHELP      = $(GENERATE_HTMLHELP)
+
+
+CHM_FILE               = ../$(PROJECT).chm
+
+
+HHC_LOCATION           = $(HHC_PATH)
+
+
+GENERATE_CHI           = $(GENERATE_CHI)
+
+
+BINARY_TOC             = NO
+
+
+TOC_EXPAND             = YES
+
+
+DISABLE_INDEX          = NO
+
+
+ENUM_VALUES_PER_LINE   = 4
+
+
+GENERATE_TREEVIEW      = YES
+
+
+TREEVIEW_WIDTH         = 250
+
+
+
+GENERATE_LATEX         = $(GENERATE_LATEX)
+
+
+LATEX_OUTPUT           = latex
+
+
+LATEX_CMD_NAME         =
+
+
+MAKEINDEX_CMD_NAME     =
+
+
+COMPACT_LATEX          = YES
+
+
+PAPER_TYPE             = $(PAPER_SIZE)
+
+
+EXTRA_PACKAGES         =
+
+
+LATEX_HEADER           =
+
+
+PDF_HYPERLINKS         = NO
+
+
+USE_PDFLATEX           = $(GENERATE_PDF)
+
+
+LATEX_BATCHMODE        = YES
+
+
+LATEX_HIDE_INDICES     = NO
+
+
+
+GENERATE_RTF           = $(GENERATE_RTF)
+
+
+RTF_OUTPUT             = rtf
+
+
+COMPACT_RTF            = YES
+
+
+RTF_HYPERLINKS         = NO
+
+
+RTF_STYLESHEET_FILE    =
+
+
+RTF_EXTENSIONS_FILE    =
+
+
+
+GENERATE_MAN           = $(GENERATE_MAN)
+
+
+MAN_OUTPUT             = man
+
+
+MAN_EXTENSION          = .3
+
+
+MAN_LINKS              = NO
+
+
+
+GENERATE_XML           = $(GENERATE_XML)
+
+
+XML_OUTPUT             = xml
+
+
+XML_PROGRAMLISTING     = YES
+
+
+
+GENERATE_AUTOGEN_DEF   = NO
+
+
+
+GENERATE_PERLMOD       = NO
+
+
+PERLMOD_LATEX          = NO
+
+
+PERLMOD_PRETTY         = YES
+
+
+PERLMOD_MAKEVAR_PREFIX =
+
+
+
+ENABLE_PREPROCESSING   = YES
+
+
+MACRO_EXPANSION        = YES
+
+
+EXPAND_ONLY_PREDEF     = YES
+
+
+SEARCH_INCLUDES        = YES
+
+
+INCLUDE_PATH           = .
+
+
+INCLUDE_FILE_PATTERNS  =
+
+
+PREDEFINED             = _DOXYGEN
+
+
+EXPAND_AS_DEFINED      = EASY_TYPE EASY_DESTRUCTOR EASY_METHOD
+
+
+SKIP_FUNCTION_MACROS   = YES
+
+
+
+TAGFILES               =
+
+
+GENERATE_TAGFILE       = $(DOCDIR)/$(PROJECT).tag
+
+
+ALLEXTERNALS           = NO
+
+
+EXTERNAL_GROUPS        = YES
+
+
+PERL_PATH              = /usr/bin/false
+
+
+
+CLASS_DIAGRAMS         = YES
+
+
+HIDE_UNDOC_RELATIONS   = YES
+
+
+HAVE_DOT               = $(HAVE_DOT)
+
+
+CLASS_GRAPH            = YES
+
+
+COLLABORATION_GRAPH    = YES
+
+
+UML_LOOK               = NO
+
+
+TEMPLATE_RELATIONS     = YES
+
+
+INCLUDE_GRAPH          = YES
+
+
+INCLUDED_BY_GRAPH      = YES
+
+
+CALL_GRAPH             = NO
+
+
+GRAPHICAL_HIERARCHY    = YES
+
+
+DOT_IMAGE_FORMAT       = png
+
+
+DOT_PATH               = $(DOT_PATH)
+
+
+DOTFILE_DIRS           =
+
+
+MAX_DOT_GRAPH_DEPTH    = 0
+
+
+GENERATE_LEGEND        = YES
+
+
+DOT_CLEANUP            = YES
+
+
+
+SEARCHENGINE           = NO

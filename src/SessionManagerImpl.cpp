@@ -172,6 +172,8 @@ void SessionManagerImpl::registerEventNotification(
 void SessionManagerImpl::initialize() {
 	// For now contact will be same for all Session
 	// So initialize the ConnectionPool with set of PBS connection
+	if(initialized)
+		return;
 	char *pbsDefault = pbs_default();
 	if (pbsDefault) {
 		PBSConnection pbsconn_(pbsDefault, 0, 0);
@@ -189,6 +191,7 @@ void SessionManagerImpl::initialize() {
 						Message(ss.str()));
 			}
 		}
+		initialized = true;
 	} else {
 		throw InternalException(SourceInfo(__func__, __LINE__));
 	}

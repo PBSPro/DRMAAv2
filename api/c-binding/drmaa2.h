@@ -199,6 +199,10 @@ typedef struct drmaa2_item_s {
 		} kv_pair;
 	} data;
 	struct drmaa2_item_s *next;
+	drmaa2_item_s() {
+		data.value = NULL;
+		next = NULL;
+	}
 } drmaa2_item_s;
 
 typedef drmaa2_item_s *drmaa2_item;
@@ -208,6 +212,12 @@ typedef struct drmaa2_list_s {
 	drmaa2_listtype type;
 	long size;
 	void *head;
+	drmaa2_list_s() {
+		free_callback = NULL;
+		type = DRMAA2_UNSET_LISTTYPE;
+		size = 0;
+		head = NULL;
+	}
 }drmaa2_list_s;
 
 typedef struct drmaa2_list_s *drmaa2_list;
@@ -254,6 +264,10 @@ typedef void (*drmaa2_dict_entryfree)(char **key, char **val);
 typedef struct drmaa2_dict_s {
 	drmaa2_dict_entryfree free_entry;
 	drmaa2_item head;
+	drmaa2_dict_s() {
+		free_entry = NULL;
+		head = NULL;
+	}
 } drmaa2_dict_s;
 
 typedef struct drmaa2_dict_s *drmaa2_dict;
@@ -290,7 +304,7 @@ drmaa2_error drmaa2_dict_set(drmaa2_dict d, const char *key, const char *val);
 #define   DRMAA2_UNSET_CALLBACK   NULL
 #define   DRMAA2_UNSET_JINFO      NULL
 #define   DRMAA2_UNSET_VERSION    NULL
-typedef struct {
+typedef struct jinfo_s {
 	drmaa2_string jobId;
 	drmaa2_string jobName;
 	int exitStatus;
@@ -309,6 +323,26 @@ typedef struct {
 	time_t dispatchTime;
 	time_t finishTime;
 	void *implementationSpecific;
+	jinfo_s() {
+		jobId = NULL;
+		jobName = NULL;
+		exitStatus = 0;
+		terminatingSignal = NULL;
+		annotation = NULL;
+		jobState = DRMAA2_UNSET_JSTATE;
+		jobSubState = NULL;
+		allocatedMachines = NULL;
+		submissionMachine = NULL;
+		jobOwner = NULL;
+		slots = 0;
+		queueName = NULL;
+		wallclockTime = 0;
+		cpuTime = 0;
+		submissionTime = 0;
+		dispatchTime = 0;
+		finishTime = 0;
+		implementationSpecific = NULL;
+	}
 } drmaa2_jinfo_s;
 
 typedef drmaa2_jinfo_s *drmaa2_jinfo;
@@ -317,17 +351,22 @@ drmaa2_jinfo drmaa2_jinfo_create(void);
 
 void drmaa2_jinfo_free(drmaa2_jinfo * ji);
 
-typedef struct {
+typedef struct slotinfo_s {
 	drmaa2_string machineName;
 	long long slots;
 	void *implementationSpecific;
+	slotinfo_s() {
+		machineName = NULL;
+		slots = 0;
+		implementationSpecific = NULL;
+	}
 } drmaa2_slotinfo_s;
 
 typedef drmaa2_slotinfo_s *drmaa2_slotinfo;
 
 void drmaa2_slotinfo_free(drmaa2_slotinfo * si);
 
-typedef struct {
+typedef struct rinfo_s {
 	drmaa2_string reservationId;
 	drmaa2_string reservationName;
 	time_t reservedStartTime;
@@ -336,13 +375,23 @@ typedef struct {
 	long long reservedSlots;
 	drmaa2_slotinfo_list reservedMachines;
 	void *implementationSpecific;
+	rinfo_s() {
+		reservationId = NULL;
+		reservationName = NULL;
+		reservedStartTime = 0;
+		reservedEndTime = 0;
+		usersACL = NULL;
+		reservedSlots = 0;
+		reservedMachines = NULL;
+		implementationSpecific = NULL;
+	}
 } drmaa2_rinfo_s;
 
 typedef drmaa2_rinfo_s *drmaa2_rinfo;
 
 void drmaa2_rinfo_free(drmaa2_rinfo * ri);
 
-typedef struct {
+typedef struct jtemplate_s {
 	drmaa2_string remoteCommand;
 	drmaa2_string_list args;
 	drmaa2_bool submitAsHold;
@@ -374,6 +423,39 @@ typedef struct {
 	drmaa2_dict resourceLimits;
 	drmaa2_string accountingId;
 	void *implementationSpecific;
+	jtemplate_s() {
+		remoteCommand = NULL;
+		args = NULL;
+		submitAsHold = DRMAA2_FALSE;
+		rerunnable = DRMAA2_FALSE;
+		jobEnvironment = NULL;
+		workingDirectory = NULL;
+		jobCategory = NULL;
+		email = NULL;
+		emailOnStarted = DRMAA2_FALSE;
+		emailOnTerminated = DRMAA2_FALSE;
+		jobName = NULL;
+		inputPath = NULL;
+		outputPath = NULL;
+		errorPath = NULL;
+		joinFiles = DRMAA2_FALSE;
+		reservationId = NULL;
+		queueName = NULL;
+		minSlots = 0;
+		maxSlots = 0;
+		priority = 0;
+		candidateMachines = NULL;
+		minPhysMemory = 0;
+		machineOS = DRMAA2_UNSET_OS;
+		machineArch = DRMAA2_UNSET_CPU;
+		startTime = 0;
+		deadlineTime = 0;
+		stageInFiles = NULL;
+		stageOutFiles = NULL;
+		resourceLimits = NULL;
+		accountingId = NULL;
+		implementationSpecific = NULL;
+	}
 } drmaa2_jtemplate_s;
 
 typedef drmaa2_jtemplate_s *drmaa2_jtemplate;
@@ -382,7 +464,7 @@ drmaa2_jtemplate drmaa2_jtemplate_create(void);
 
 void drmaa2_jtemplate_free(drmaa2_jtemplate * jt);
 
-typedef struct {
+typedef struct rtemplate_s {
 	drmaa2_string reservationName;
 	time_t startTime;
 	time_t endTime;
@@ -396,6 +478,21 @@ typedef struct {
 	drmaa2_os machineOS;
 	drmaa2_cpu machineArch;
 	void *implementationSpecific;
+	rtemplate_s() {
+		reservationName = NULL;
+		startTime = 0;
+		endTime = 0;
+		duration = 0;
+		minSlots = 0;
+		maxSlots = 0;
+		jobCategory = NULL;
+		usersACL = NULL;
+		candidateMachines = NULL;
+		minPhysMemory = 0;
+		machineOS = DRMAA2_UNSET_OS;
+		machineArch = DRMAA2_UNSET_CPU;
+		implementationSpecific = NULL;
+	}
 } drmaa2_rtemplate_s;
 
 typedef drmaa2_rtemplate_s *drmaa2_rtemplate;
@@ -404,38 +501,54 @@ drmaa2_rtemplate drmaa2_rtemplate_create(void);
 
 void drmaa2_rtemplate_free(drmaa2_rtemplate * rt);
 
-typedef struct {
+typedef struct notification_s {
 	drmaa2_event event;
 	drmaa2_string jobId;
 	drmaa2_string sessionName;
 	drmaa2_jstate jobState;
 	void *implementationSpecific;
+	notification_s() {
+		event = DRMAA2_UNSET_EVENT;
+		jobId = NULL;
+		sessionName = NULL;
+		jobState = DRMAA2_UNSET_JSTATE; 
+		implementationSpecific = NULL;
+	}
 } drmaa2_notification_s;
 
 typedef drmaa2_notification_s *drmaa2_notification;
 
 void drmaa2_notification_free(drmaa2_notification * n);
 
-typedef struct {
+typedef struct queueinfo_s {
 	drmaa2_string name;
 	void *implementationSpecific;
+	queueinfo_s() {
+		name = NULL;
+		implementationSpecific = NULL;
+	}
 } drmaa2_queueinfo_s;
 
 typedef drmaa2_queueinfo_s *drmaa2_queueinfo;
 
 void drmaa2_queueinfo_free(drmaa2_queueinfo * qi);
 
-typedef struct {
+typedef struct version_s {
 	drmaa2_string major;
 	drmaa2_string minor;
 	void *implementationSpecific;
+	version_s() {
+		major = NULL;
+		minor = NULL;
+		implementationSpecific = NULL;
+	}
 } drmaa2_version_s;
 
 typedef drmaa2_version_s *drmaa2_version;
 
 void drmaa2_version_free(drmaa2_version * v);
 
-typedef struct {
+typedef struct machineinfo_s {
 	drmaa2_string name;
 	drmaa2_bool available;
 	long long sockets;
@@ -448,6 +561,20 @@ typedef struct {
 	drmaa2_version machineOSVersion;
 	drmaa2_cpu machineArch;
 	void *implementationSpecific;
+	machineinfo_s() {
+		name = NULL;
+		available = DRMAA2_FALSE;
+		sockets = 0;
+		coresPerSocket = 0;
+		threadsPerCore = 0;
+		load = 0;
+		physMemory = 0;
+		virtMemory = 0;
+		machineOS = DRMAA2_UNSET_OS;
+		machineOSVersion = NULL;
+		machineArch = DRMAA2_UNSET_CPU; 
+		implementationSpecific = NULL;
+	}
 } drmaa2_machineinfo_s;
 
 typedef drmaa2_machineinfo_s *drmaa2_machineinfo;

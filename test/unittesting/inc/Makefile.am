@@ -40,4 +40,5 @@ noinst_HEADERS = \
 	drmaa2listTest.h \
 	JobSessionTest.h \
 	ReservationSessionTest.h \
-	MonitoringSessionTest.h
+	MonitoringSessionTest.h \
+	JobApiTest.h

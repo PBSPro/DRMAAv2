@@ -35,14 +35,19 @@
  *
  */
 
-#include "drmaa2.hpp"
-#include "drmaa2.h"
+#include <drmaa2.hpp>
+#include <drmaa2.h>
 
 #include <string>
+#include <list>
+#include <vector>
 
 #include "SessionManagerImpl.h"
+#include <InvalidArgumentException.h>
+#include <InvalidStateException.h>
 
 using namespace std;
+using namespace drmaa2;
 
 #ifdef __cplusplus
 extern "C" {
@@ -558,8 +563,20 @@ drmaa2_error drmaa2_dict_set(drmaa2_dict d, const char *key, const char *val) {
  */
 
 drmaa2_jinfo drmaa2_jinfo_create(void) {
-	//TODO Add Code here
-	return NULL;
+	drmaa2_jinfo jinfo;
+	try{
+		jinfo = new drmaa2_jinfo_s();
+	} catch(bad_alloc &ex) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
+	jinfo->allocatedMachines = drmaa2_list_create(DRMAA2_SLOTINFOLIST, NULL);;
+	if(jinfo->allocatedMachines == NULL) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		drmaa2_jinfo_free(&jinfo);
+		return NULL;
+	}
+	return jinfo;
 }
 
 /**
@@ -573,7 +590,34 @@ drmaa2_jinfo drmaa2_jinfo_create(void) {
  *
  */
 void drmaa2_jinfo_free(drmaa2_jinfo * ji) {
-	//TODO Add Code here
+	int size = 0, i = 0;
+	char *tmp = NULL;
+	if(*ji) {
+		size = drmaa2_list_size((*ji)->allocatedMachines);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				tmp = (char *)drmaa2_list_get((*ji)->allocatedMachines, i);
+				free(tmp);
+			}
+		}
+		drmaa2_list_free(&(*ji)->allocatedMachines);
+		if((*ji)->jobId)
+			free((char *)(*ji)->jobId);
+		if((*ji)->terminatingSignal)
+			free((char *)(*ji)->terminatingSignal);
+		if((*ji)->annotation)
+			free((char *)(*ji)->annotation);
+		if((*ji)->jobSubState)
+			free((char *)(*ji)->jobSubState);
+		if((*ji)->submissionMachine)
+			free((char *)(*ji)->submissionMachine);
+		if((*ji)->jobOwner)
+			free((char *)(*ji)->jobOwner);
+		if((*ji)->queueName)
+			free((char *)(*ji)->queueName);
+		free(*ji);
+		*ji = NULL;
+	}
 }
 
 /**
@@ -610,8 +654,27 @@ void drmaa2_rinfo_free(drmaa2_rinfo * ri) {
  *		NULL - if allocation fails and DRMAA2_OUT_OF_RESOURCE error is set
  */
 drmaa2_jtemplate drmaa2_jtemplate_create(void) {
-	//TODO Add Code here
-	return NULL;
+	drmaa2_jtemplate jt;
+	try{
+		jt = new drmaa2_jtemplate_s();
+	}catch(bad_alloc &ex){
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
+	jt->jobEnvironment = drmaa2_dict_create(NULL);
+	jt->stageInFiles = drmaa2_dict_create(NULL);
+	jt->stageOutFiles = drmaa2_dict_create(NULL);
+	jt->resourceLimits = drmaa2_dict_create(NULL);
+	jt->candidateMachines = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	jt->email = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	jt->args = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	if(jt->jobEnvironment == NULL || jt->stageInFiles == NULL || jt->stageOutFiles == NULL
+			|| jt->resourceLimits == NULL || jt->email == NULL || jt->args == NULL) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		drmaa2_jtemplate_free(&jt);
+		return NULL;
+	}
+	return jt;
 }
 
 /**
@@ -623,7 +686,61 @@ drmaa2_jtemplate drmaa2_jtemplate_create(void) {
  *
  */
 void drmaa2_jtemplate_free(drmaa2_jtemplate * jt) {
-	//TODO Add Code here
+	int size = 0, i = 0;
+	char *tmp = NULL;
+	if(*jt) {
+		drmaa2_dict_free(&(*jt)->jobEnvironment);
+		drmaa2_dict_free(&(*jt)->stageInFiles);
+		drmaa2_dict_free(&(*jt)->stageOutFiles);
+		drmaa2_dict_free(&(*jt)->resourceLimits);
+		size = drmaa2_list_size((*jt)->candidateMachines);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				tmp = (char *)drmaa2_list_get((*jt)->candidateMachines, i);
+				free(tmp);
+			}
+		}
+		drmaa2_list_free(&(*jt)->candidateMachines);
+		size = drmaa2_list_size((*jt)->email);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				tmp = (char *)drmaa2_list_get((*jt)->email, i);
+				free(tmp);
+			}
+		}
+		drmaa2_list_free(&(*jt)->email);
+		size = drmaa2_list_size((*jt)->args);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				tmp = (char *)drmaa2_list_get((*jt)->args, i);
+				free(tmp);
+			}
+		}
+		drmaa2_list_free(&(*jt)->args);
+		if((*jt)->remoteCommand)
+			free((char *)(*jt)->remoteCommand);
+		if((*jt)->workingDirectory)
+			free((char *)(*jt)->workingDirectory);
+		if((*jt)->jobCategory)
+			free((char *)(*jt)->jobCategory);
+		if((*jt)->jobName)
+			free((char *)(*jt)->jobName);
+		if((*jt)->inputPath)
+			free((char *)(*jt)->inputPath);
+		if((*jt)->outputPath)
+			free((char *)(*jt)->outputPath);
+		if((*jt)->errorPath)
+			free((char *)(*jt)->errorPath);
+		if((*jt)->reservationId)
+			free((char *)(*jt)->reservationId);
+		if((*jt)->queueName)
+			free((char *)(*jt)->queueName);
+		if((*jt)->accountingId)
+			free((char *)(*jt)->accountingId);
+		free((*jt));
+		*jt = NULL;
+	}
+	return;
 }
 
 /**
@@ -830,7 +947,18 @@ drmaa2_error drmaa2_set_instance_value(void *instance, const char *name,
  *  @return - None
  */
 void drmaa2_jsession_free(drmaa2_jsession * js) {
-	//TODO Add Code here
+	if(*js == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return;
+	}
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	JobSession *obj = reinterpret_cast<JobSession *>(*js);
+	try {
+		sessionManagerObj_->destroyJobSession(obj->getSessionName());
+	} catch(InvalidArgumentException& ex) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return;
+	}
 }
 /**
  *  @brief  Frees the memory of Reservation session pointed by rs
@@ -863,7 +991,9 @@ void drmaa2_msession_free(drmaa2_msession * ms) {
  *  @return - None
  */
 void drmaa2_j_free(drmaa2_j * j) {
-	//TODO Add Code here
+	if (*j)
+		delete (Job *)reinterpret_cast<Job *>(*j);
+	*j = NULL;
 }
 
 /**
@@ -874,7 +1004,9 @@ void drmaa2_j_free(drmaa2_j * j) {
  *  @return - None
  */
 void drmaa2_jarray_free(drmaa2_jarray * ja) {
-	//TODO Add Code here
+	if (*ja)
+		delete (JobArray *)reinterpret_cast<JobArray *>(*ja);
+	*ja = NULL;
 }
 
 /**
@@ -1077,8 +1209,12 @@ drmaa2_error drmaa2_r_terminate(drmaa2_r r) {
  *
  */
 drmaa2_string drmaa2_jarray_get_id(const drmaa2_jarray ja) {
-	//TODO Add Code here
-	return NULL;
+	if(ja == NULL ){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	return (drmaa2_string)strdup(obj->getJobArrayId().c_str());
 }
 
 /**
@@ -1091,7 +1227,19 @@ drmaa2_string drmaa2_jarray_get_id(const drmaa2_jarray ja) {
  * 		NULL - if fails and DRMAA2_INVALID_ARGUMENT error is set
  */
 drmaa2_j_list drmaa2_jarray_get_jobs(const drmaa2_jarray ja) {
-	//TODO Add Code here
+	if(ja == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	JobList jL = obj->getJobs();
+	if(jL.size() > 0) {
+		drmaa2_list jl = drmaa2_list_create(DRMAA2_JOBLIST, NULL);
+		for(list<Job*>::const_iterator it = jL.begin(); it != jL.end(); ++it) {
+			drmaa2_list_add(jl, (*it));
+		}
+		return jl;
+	}
 	return NULL;
 }
 
@@ -1105,7 +1253,7 @@ drmaa2_j_list drmaa2_jarray_get_jobs(const drmaa2_jarray ja) {
  * 		NULL - if fails and DRMAA2_INVALID_ARGUMENT error is set
  */
 drmaa2_string drmaa2_jarray_get_session_name(const drmaa2_jarray ja) {
-	//TODO Add Code here
+	lasterror = DRMAA2_UNSUPPORTED_OPERATION;
 	return NULL;
 }
 
@@ -1122,8 +1270,83 @@ drmaa2_string drmaa2_jarray_get_session_name(const drmaa2_jarray ja) {
  */
 
 drmaa2_jtemplate drmaa2_jarray_get_jtemplate(const drmaa2_jarray ja) {
-	//TODO Add Code here
-	return NULL;
+	if(ja == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	drmaa2_jtemplate jt = drmaa2_jtemplate_create();
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	const JobTemplate& jT = obj->getJobTemplate();
+	if(jT.accountingId.length() > 0)
+		jt->accountingId = (drmaa2_string)strdup(jT.accountingId.c_str());
+	if(jT.args.size() > 0) {
+		for(vector<string>::const_iterator it = jT.args.begin(); it != jT.args.end(); ++it) {
+			drmaa2_list_add(jt->args, strdup((*it).c_str()));
+		}
+	}
+	if(jT.candidateMachines.size() > 0) {
+		for(vector<string>::const_iterator it = jT.candidateMachines.begin(); it != jT.candidateMachines.end(); ++it) {
+			drmaa2_list_add(jt->candidateMachines, strdup((*it).c_str()));
+		}
+	}
+	jt->deadlineTime = jT.deadlineTime;
+	if(jT.email.size() > 0) {
+		for(list<string>::const_iterator it = jT.email.begin(); it != jT.email.end(); ++it) {
+			drmaa2_list_add(jt->email, strdup((*it).c_str()));
+		}
+	}
+	jt->emailOnStarted = jT.emailOnStarted ? DRMAA2_TRUE : DRMAA2_FALSE;
+	jt->emailOnTerminated = jT.emailOnTerminated ? DRMAA2_TRUE : DRMAA2_FALSE;
+	if(jT.errorPath.length() > 0)
+		jt->errorPath = (drmaa2_string)strdup(jT.errorPath.c_str());
+	if(jT.inputPath.length() > 0)
+		jt->inputPath = (drmaa2_string)strdup(jT.inputPath.c_str());
+	if(jT.jobCategory.length() > 0)
+		jt->jobCategory = (drmaa2_string)strdup(jT.jobCategory.c_str());
+	if(jT.jobEnvironment.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.jobEnvironment.begin(); it!=jT.jobEnvironment.end(); ++it) {
+			drmaa2_dict_set(jt->jobEnvironment, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	if(jT.jobName.length() > 0) {
+		jt->jobName = (drmaa2_string)strdup(jT.jobName.c_str());
+	}
+	jt->joinFiles = jT.joinFiles ? DRMAA2_TRUE : DRMAA2_FALSE;
+	jt->machineArch = (drmaa2_cpu)jT.machineArch;
+	jt->machineOS = (drmaa2_os)jT.machineOS;
+	jt->maxSlots = jT.maxSlots;
+	jt->minPhysMemory = jT.minPhysMemory;
+	jt->minSlots = jT.minSlots;
+	if(jT.outputPath.length() > 0)
+		jt->outputPath = (drmaa2_string)strdup(jT.outputPath.c_str());
+	jt->priority = jT.priority;
+	if(jT.queueName.length() > 0)
+		jt->queueName = (drmaa2_string)strdup(jT.queueName.c_str());
+	if(jT.remoteCommand.length() > 0)
+		jt->remoteCommand = (drmaa2_string)strdup(jT.remoteCommand.c_str());
+	jt->rerunnable = jT.rerunnable ? DRMAA2_TRUE : DRMAA2_FALSE;
+	if(jT.reservationId.length() > 0)
+		jt->reservationId = (drmaa2_string)strdup(jT.reservationId.c_str());
+	if(jT.resourceLimits.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.resourceLimits.begin(); it!=jT.resourceLimits.end(); ++it) {
+			drmaa2_dict_set(jt->resourceLimits, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	if(jT.stageInFiles.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.stageInFiles.begin(); it!=jT.stageInFiles.end(); ++it) {
+			drmaa2_dict_set(jt->stageInFiles, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	if(jT.stageOutFiles.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.stageOutFiles.begin(); it!=jT.stageOutFiles.end(); ++it) {
+			drmaa2_dict_set(jt->stageOutFiles, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	jt->startTime = jT.startTime;
+	jt->submitAsHold = jT.submitAsHold ? DRMAA2_TRUE : DRMAA2_FALSE;
+	if(jT.workingDirectory.length() > 0)
+		jt->workingDirectory = (drmaa2_string)strdup(jT.workingDirectory.c_str());
+	return jt;
 }
 
 /**
@@ -1137,8 +1360,14 @@ drmaa2_jtemplate drmaa2_jarray_get_jtemplate(const drmaa2_jarray ja) {
  */
 
 drmaa2_error drmaa2_jarray_suspend(drmaa2_jarray ja) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	string subState;
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	try {
+		obj->suspend();
+		return DRMAA2_SUCCESS;
+	} catch (InvalidStateException &ex) {
+		return DRMAA2_INVALID_STATE;
+	}
 }
 
 /**
@@ -1152,10 +1381,14 @@ drmaa2_error drmaa2_jarray_suspend(drmaa2_jarray ja) {
  */
 
 drmaa2_error drmaa2_jarray_resume(drmaa2_jarray ja) {
-
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
-
+	string subState;
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	try {
+		obj->resume();
+		return DRMAA2_SUCCESS;
+	} catch (InvalidStateException &ex) {
+		return DRMAA2_INVALID_STATE;
+	}
 }
 
 /**
@@ -1169,8 +1402,14 @@ drmaa2_error drmaa2_jarray_resume(drmaa2_jarray ja) {
  */
 
 drmaa2_error drmaa2_jarray_hold(drmaa2_jarray ja) {
-	//TODO Add Code here
-	return DRMAA2_INVALID_ARGUMENT;
+	string subState;
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	try {
+		obj->hold();
+		return DRMAA2_SUCCESS;
+	} catch (InvalidStateException &ex) {
+		return DRMAA2_INVALID_STATE;
+	}
 }
 
 /**
@@ -1185,8 +1424,14 @@ drmaa2_error drmaa2_jarray_hold(drmaa2_jarray ja) {
  */
 
 drmaa2_error drmaa2_jarray_release(drmaa2_jarray ja) {
-	//TODO Add Code here
-	return DRMAA2_INVALID_STATE;
+	string subState;
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	try {
+		obj->release();
+		return DRMAA2_SUCCESS;
+	} catch (InvalidStateException &ex) {
+		return DRMAA2_INVALID_STATE;
+	}
 }
 
 /**
@@ -1201,8 +1446,14 @@ drmaa2_error drmaa2_jarray_release(drmaa2_jarray ja) {
  */
 
 drmaa2_error drmaa2_jarray_terminate(drmaa2_jarray ja) {
-	//TODO Add Code here
-	return DRMAA2_INVALID_ARGUMENT;
+	string subState;
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	try {
+		obj->terminate();
+		return DRMAA2_SUCCESS;
+	} catch (InvalidStateException &ex) {
+		return DRMAA2_INVALID_STATE;
+	}
 }
 
 /**
@@ -1216,7 +1467,8 @@ drmaa2_error drmaa2_jarray_terminate(drmaa2_jarray ja) {
  *
  */
 drmaa2_error drmaa2_jarray_reap(drmaa2_jarray ja) {
-	//TODO Add Code here
+	JobArray *obj = reinterpret_cast<JobArray *>(ja);
+	obj->reap();
 	return DRMAA2_SUCCESS;
 }
 
@@ -1232,8 +1484,12 @@ drmaa2_error drmaa2_jarray_reap(drmaa2_jarray ja) {
  */
 
 drmaa2_string drmaa2_jsession_get_contact(const drmaa2_jsession js) {
-	//TODO Add Code here
-	return NULL;
+	if(js == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobSession *obj = reinterpret_cast<JobSession *>(js);
+	return (drmaa2_string)strdup(obj->getContact().c_str());
 }
 
 /**
@@ -1248,8 +1504,12 @@ drmaa2_string drmaa2_jsession_get_contact(const drmaa2_jsession js) {
  */
 
 drmaa2_string drmaa2_jsession_get_session_name(const drmaa2_jsession js) {
-	//TODO Add Code here
-	return NULL;
+	if(js == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobSession *obj = reinterpret_cast<JobSession *>(js);
+	return (drmaa2_string)strdup(obj->getSessionName().c_str());
 }
 
 /**
@@ -1267,8 +1527,17 @@ drmaa2_string drmaa2_jsession_get_session_name(const drmaa2_jsession js) {
  */
 drmaa2_string_list drmaa2_jsession_get_job_categories(
 		const drmaa2_jsession js) {
-	//TODO Add Code here
-	return NULL;
+	if (js == NULL)
+		return NULL;
+	drmaa2_list jc = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	JobSession *jobSession = reinterpret_cast<JobSession *>(js);
+	StringList jC = jobSession->getJobCategories();
+	if(jC.size() > 0) {
+		for(StringList::const_iterator it = jC.begin(); it != jC.end(); ++it) {
+			drmaa2_list_add(jc, strdup((*it).c_str()));
+		}
+	}
+	return jc;
 }
 
 /**
@@ -1286,8 +1555,67 @@ drmaa2_string_list drmaa2_jsession_get_job_categories(
  */
 drmaa2_j_list drmaa2_jsession_get_jobs(const drmaa2_jsession js,
 		const drmaa2_jinfo filter) {
-	//TODO Add Code here
-	return NULL;
+	if(js == NULL || filter == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobSession *jobSession = reinterpret_cast<JobSession *>(js);
+	if (js == NULL)
+		return NULL;
+	else {
+		JobInfo jobInfo;
+		vector<string> allocatedMachines;
+		for(int i = 0 ; i < drmaa2_list_size(filter->allocatedMachines); i++ ){
+			allocatedMachines.push_back(string((char*)drmaa2_list_get(filter->allocatedMachines, i)));
+		}
+		jobInfo.allocatedMachines = allocatedMachines;
+		if(filter->annotation != NULL){
+			jobInfo.annotation = string(filter->annotation);
+		}
+		jobInfo.cpuTime = filter->cpuTime;
+		jobInfo.dispatchTime = filter->dispatchTime;
+		jobInfo.exitStatus = filter->exitStatus;
+		jobInfo.finishTime = filter->finishTime;
+		if(filter->jobId != NULL){
+			jobInfo.jobId = string(filter->jobId);
+		}
+		if(filter->jobOwner!=NULL){
+			jobInfo.jobOwner = string(filter->jobOwner);
+		}
+		JobState jobState;
+		switch(filter->jobState){
+			case DRMAA2_RUNNING: jobState = RUNNING; break;
+			case DRMAA2_QUEUED: jobState = QUEUED; break;
+			case DRMAA2_QUEUED_HELD: jobState = QUEUED_HELD; break;
+			case DRMAA2_REQUEUED: jobState = REQUEUED; break;
+			case DRMAA2_REQUEUED_HELD: jobState = REQUEUED_HELD; break;
+			case DRMAA2_SUSPENDED: jobState = SUSPENDED; break;
+			case DRMAA2_DONE: jobState = DONE	; break;
+			default: jobState = UNDETERMINED;
+		}
+		jobInfo.jobState = jobState;
+		if(filter->jobSubState!=NULL){
+			jobInfo.jobSubState = string(filter->jobSubState);
+		}
+		if(filter->queueName!=NULL){
+			jobInfo.queueName = string(filter->queueName);
+		}
+		jobInfo.slots = filter->slots;
+		if(filter->submissionMachine!=NULL){
+			jobInfo.submissionMachine.assign(filter->submissionMachine);
+		}
+		jobInfo.submissionTime = filter->submissionTime;
+		if(filter->terminatingSignal!=NULL){
+			jobInfo.terminatingSignal.assign(filter->terminatingSignal);
+		}
+		jobInfo.wallclockTime = filter->wallclockTime;
+		JobList jobs = jobSession->getJobs(jobInfo);
+		drmaa2_j_list j_list = drmaa2_list_create(DRMAA2_JOBLIST, NULL);
+		for(list<Job*>::const_iterator iterator = jobs.begin(), end = jobs.end() ; iterator != end ; ++iterator ){
+			drmaa2_list_add(j_list, (void*)*iterator);
+		}
+		return j_list;
+	}
 }
 
 /**
@@ -1304,8 +1632,14 @@ drmaa2_j_list drmaa2_jsession_get_jobs(const drmaa2_jsession js,
  */
 drmaa2_jarray drmaa2_jsession_get_job_array(const drmaa2_jsession js,
 		const drmaa2_string jobarrayId) {
-	//TODO Add Code here
-	return NULL;
+	if(js == NULL || jobarrayId == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobSession *jobSession = reinterpret_cast<JobSession *>(js);
+	void *jarray;
+	jarray = const_cast<JobArray*>(&jobSession->getJobArray(jobarrayId));
+	return (drmaa2_jarray)jarray;
 }
 
 /**
@@ -1324,8 +1658,153 @@ drmaa2_jarray drmaa2_jsession_get_job_array(const drmaa2_jsession js,
  */
 drmaa2_j drmaa2_jsession_run_job(const drmaa2_jsession js,
 		const drmaa2_jtemplate jt) {
-	//TODO Add Code here
-	return NULL;
+	char *tmp = NULL;
+	int size = 0, i = 0;
+	if(js == NULL || jt == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobSession *jobSession = reinterpret_cast<JobSession *>(js);
+
+	/*conversion from drmaa2_jtemplate to JobTemplate*/
+	string key, value, intermediate;
+	JobTemplate jobTemplate;
+
+	if(jt->accountingId!=NULL)
+		jobTemplate.accountingId.assign(jt->accountingId);
+
+	vector<string> slArgs;
+	size = drmaa2_list_size(jt->args);
+	for(i = 0 ; i < size ; ++i ){
+		intermediate.assign((char*)drmaa2_list_get(jt->args, i));
+		slArgs.push_back(intermediate);
+	}
+	jobTemplate.args = slArgs;
+
+	if(drmaa2_list_size(jt->candidateMachines) > 0) {
+		size = drmaa2_list_size(jt->candidateMachines);
+		for(i = 0; i < size; i++) {
+			jobTemplate.candidateMachines.push_back(string((char*)drmaa2_list_get(jt->candidateMachines, i)));
+		}
+	}
+
+	list<string> slEmail;
+	for(i = 0 ; i < drmaa2_list_size(jt->email) ; ++i ){
+		intermediate.assign((char*)drmaa2_list_get(jt->email, i));
+		slEmail.push_back(intermediate);
+	}
+	jobTemplate.email = slEmail;
+
+	jobTemplate.emailOnStarted = jt->emailOnStarted == DRMAA2_TRUE ? true : false;
+
+	jobTemplate.emailOnTerminated = jt->emailOnTerminated == DRMAA2_TRUE ? true : false;
+
+	if(jt->errorPath!=NULL)
+		jobTemplate.errorPath.assign(jt->errorPath);
+
+	if(jt->inputPath!=NULL)
+		jobTemplate.inputPath.assign(jt->inputPath);
+
+	if(jt->jobCategory!=NULL)
+		jobTemplate.jobCategory.assign(jt->jobCategory);
+
+	drmaa2_list lEnv;
+	lEnv = drmaa2_dict_list(jt->jobEnvironment);
+	map<string, string> dJobEnvironment;
+	size = drmaa2_list_size(lEnv);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lEnv, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->jobEnvironment,(char*)key.c_str()));
+		dJobEnvironment.insert(std::pair<string,string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lEnv);
+	jobTemplate.jobEnvironment = dJobEnvironment;
+
+	if(jt->jobName!=NULL)
+		jobTemplate.jobName.assign(jt->jobName);
+
+	jobTemplate.joinFiles = jt->joinFiles == DRMAA2_TRUE ? true : false;
+
+	jobTemplate.machineArch = (drmaa2::CpuArchitecture)jt->machineArch;
+	jobTemplate.machineOS = (drmaa2::OperatingSystem)jt->machineOS;
+	jobTemplate.maxSlots = jt->maxSlots;
+	jobTemplate.minPhysMemory = jt->minPhysMemory;
+	jobTemplate.minSlots = jt->minSlots;
+
+	if(jt->outputPath!=NULL)
+		jobTemplate.outputPath.assign(jt->outputPath);
+
+	jobTemplate.priority = jt->priority;
+
+	if(jt->queueName!=NULL)
+		jobTemplate.queueName.assign(jt->queueName);
+
+	if(jt->remoteCommand!=NULL)
+		jobTemplate.remoteCommand.assign(jt->remoteCommand);
+
+	jobTemplate.rerunnable = jt->rerunnable == DRMAA2_TRUE ? true : false;
+
+	if(jt->reservationId!=NULL)
+		jobTemplate.reservationId.assign(jt->reservationId);
+
+	map<string, string> dResourceLimits;
+	drmaa2_list lResource;
+	lResource = drmaa2_dict_list(jt->resourceLimits);
+	size = drmaa2_list_size(lResource);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lResource, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->resourceLimits,(char*)key.c_str()));
+		dResourceLimits.insert(std::pair<string, string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lResource);
+	jobTemplate.resourceLimits = dResourceLimits;
+
+	map<string, string> dStageInFiles;
+	drmaa2_list lStageIn;
+	lStageIn = drmaa2_dict_list(jt->stageInFiles);
+	size = drmaa2_list_size(lStageIn);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lStageIn, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->stageInFiles,(char*)key.c_str()));
+		dStageInFiles.insert(std::pair<string, string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lStageIn);
+	jobTemplate.stageInFiles = dStageInFiles;
+
+	map<string, string> dStageOutFiles;
+	drmaa2_list lStageOut;
+	lStageOut = drmaa2_dict_list(jt->stageOutFiles);
+	size = drmaa2_list_size(lStageOut);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lStageOut, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->stageOutFiles,(char*)key.c_str()));
+		dStageOutFiles.insert(std::pair<string, string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lStageOut);
+	jobTemplate.stageOutFiles = dStageOutFiles;
+
+	jobTemplate.startTime = jt->startTime;
+	jobTemplate.submitAsHold = jt->submitAsHold == DRMAA2_TRUE ? true : false;
+
+	if(jt->workingDirectory!=NULL)
+		jobTemplate.workingDirectory = jt->workingDirectory;
+
+	try{
+		const Job &j = jobSession->runJob(jobTemplate);
+		void *job = const_cast<Job*>(&j);
+		return (drmaa2_j)job;
+	}catch(ImplementationSpecificException &ex){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
 }
 
 /**
@@ -1349,8 +1828,153 @@ drmaa2_jarray drmaa2_jsession_run_bulk_jobs(const drmaa2_jsession js,
 		const drmaa2_jtemplate jt, const long long begin_index,
 		const long long end_index, const long long step,
 		const long long max_parallel) {
-	//TODO Add Code here
-	return NULL;
+	char *tmp = NULL;
+	int size = 0, i = 0;
+	if(js == NULL || jt == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	JobSession *jobSession = reinterpret_cast<JobSession *>(js);
+
+	/*conversion from drmaa2_jtemplate to JobTemplate*/
+	string key, value, intermediate;
+	JobTemplate jobTemplate;
+
+	if(jt->accountingId!=NULL)
+		jobTemplate.accountingId.assign(jt->accountingId);
+
+	vector<string> slArgs;
+	size = drmaa2_list_size(jt->args);
+	for(i = 0 ; i < size ; ++i ){
+		intermediate.assign((char*)drmaa2_list_get(jt->args, i));
+		slArgs.push_back(intermediate);
+	}
+	jobTemplate.args = slArgs;
+
+	if(drmaa2_list_size(jt->candidateMachines) > 0) {
+		size = drmaa2_list_size(jt->candidateMachines);
+		for(i = 0; i < size; i++) {
+			jobTemplate.candidateMachines.push_back(string((char*)drmaa2_list_get(jt->candidateMachines, i)));
+		}
+	}
+
+	list<string> slEmail;
+	for(i = 0 ; i < drmaa2_list_size(jt->email) ; ++i ){
+		intermediate.assign((char*)drmaa2_list_get(jt->email, i));
+		slEmail.push_back(intermediate);
+	}
+	jobTemplate.email = slEmail;
+
+	jobTemplate.emailOnStarted = jt->emailOnStarted == DRMAA2_TRUE ? true : false;
+
+	jobTemplate.emailOnTerminated = jt->emailOnTerminated == DRMAA2_TRUE ? true : false;
+
+	if(jt->errorPath!=NULL)
+		jobTemplate.errorPath.assign(jt->errorPath);
+
+	if(jt->inputPath!=NULL)
+		jobTemplate.inputPath.assign(jt->inputPath);
+
+	if(jt->jobCategory!=NULL)
+		jobTemplate.jobCategory.assign(jt->jobCategory);
+
+	drmaa2_list lEnv;
+	lEnv = drmaa2_dict_list(jt->jobEnvironment);
+	map<string, string> dJobEnvironment;
+	size = drmaa2_list_size(lEnv);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lEnv, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->jobEnvironment,(char*)key.c_str()));
+		dJobEnvironment.insert(std::pair<string,string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lEnv);
+	jobTemplate.jobEnvironment = dJobEnvironment;
+
+	if(jt->jobName!=NULL)
+		jobTemplate.jobName.assign(jt->jobName);
+
+	jobTemplate.joinFiles = jt->joinFiles == DRMAA2_TRUE ? true : false;
+
+	jobTemplate.machineArch = (drmaa2::CpuArchitecture)jt->machineArch;
+	jobTemplate.machineOS = (drmaa2::OperatingSystem)jt->machineOS;
+	jobTemplate.maxSlots = jt->maxSlots;
+	jobTemplate.minPhysMemory = jt->minPhysMemory;
+	jobTemplate.minSlots = jt->minSlots;
+
+	if(jt->outputPath!=NULL)
+		jobTemplate.outputPath.assign(jt->outputPath);
+
+	jobTemplate.priority = jt->priority;
+
+	if(jt->queueName!=NULL)
+		jobTemplate.queueName.assign(jt->queueName);
+
+	if(jt->remoteCommand!=NULL)
+		jobTemplate.remoteCommand.assign(jt->remoteCommand);
+
+	jobTemplate.rerunnable = jt->rerunnable == DRMAA2_TRUE ? true : false;
+
+	if(jt->reservationId!=NULL)
+		jobTemplate.reservationId.assign(jt->reservationId);
+
+	map<string, string> dResourceLimits;
+	drmaa2_list lResource;
+	lResource = drmaa2_dict_list(jt->resourceLimits);
+	size = drmaa2_list_size(lResource);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lResource, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->resourceLimits,(char*)key.c_str()));
+		dResourceLimits.insert(std::pair<string, string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lResource);
+	jobTemplate.resourceLimits = dResourceLimits;
+
+	map<string, string> dStageInFiles;
+	drmaa2_list lStageIn;
+	lStageIn = drmaa2_dict_list(jt->stageInFiles);
+	size = drmaa2_list_size(lStageIn);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lStageIn, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->stageInFiles,(char*)key.c_str()));
+		dStageInFiles.insert(std::pair<string, string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lStageIn);
+	jobTemplate.stageInFiles = dStageInFiles;
+
+	map<string, string> dStageOutFiles;
+	drmaa2_list lStageOut;
+	lStageOut = drmaa2_dict_list(jt->stageOutFiles);
+	size = drmaa2_list_size(lStageOut);
+	for(i = 0 ; i < size ; i++){
+		tmp = (char*)drmaa2_list_get(lStageOut, i);
+		key.assign(tmp);
+		value.assign(drmaa2_dict_get(jt->stageOutFiles,(char*)key.c_str()));
+		dStageOutFiles.insert(std::pair<string, string>(key, value));
+		free(tmp);
+	}
+	drmaa2_list_free(&lStageOut);
+	jobTemplate.stageOutFiles = dStageOutFiles;
+
+	jobTemplate.startTime = jt->startTime;
+	jobTemplate.submitAsHold = jt->submitAsHold == DRMAA2_TRUE ? true : false;
+
+	if(jt->workingDirectory!=NULL)
+		jobTemplate.workingDirectory = jt->workingDirectory;
+
+	try{
+		const JobArray &ja = jobSession->runBulkJobs(jobTemplate, begin_index, end_index, step, max_parallel);
+		void *jobArray = const_cast<JobArray*>(&ja);
+		return (drmaa2_jarray)jobArray;
+	}catch(ImplementationSpecificException &ex){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
 }
 
 /**
@@ -1402,8 +2026,12 @@ drmaa2_j drmaa2_jsession_wait_any_terminated(const drmaa2_jsession js,
  */
 
 drmaa2_string drmaa2_j_get_id(const drmaa2_j j) {
-	//TODO Add Code here
-	return NULL;
+	if(j == NULL ){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	Job *obj = reinterpret_cast<Job *>(j);
+	return (drmaa2_string)strdup(obj->getJobId().c_str());
 }
 
 /**
@@ -1418,7 +2046,7 @@ drmaa2_string drmaa2_j_get_id(const drmaa2_j j) {
  */
 
 drmaa2_string drmaa2_j_get_session_name(const drmaa2_j j) {
-	//TODO Add Code here
+	lasterror = DRMAA2_UNSUPPORTED_OPERATION;
 	return NULL;
 }
 
@@ -1434,8 +2062,83 @@ drmaa2_string drmaa2_j_get_session_name(const drmaa2_j j) {
  *
  */
 drmaa2_jtemplate drmaa2_j_get_jtemplate(const drmaa2_j j) {
-	//TODO Add Code here
-	return NULL;
+	if(j == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	drmaa2_jtemplate jt = drmaa2_jtemplate_create();
+	Job *obj = reinterpret_cast<Job *>(j);
+	const JobTemplate& jT = obj->getJobTemplate();
+	if(jT.accountingId.length() > 0)
+		jt->accountingId = (drmaa2_string)strdup(jT.accountingId.c_str());
+	if(jT.args.size() > 0) {
+		for(vector<string>::const_iterator it = jT.args.begin(); it != jT.args.end(); ++it) {
+			drmaa2_list_add(jt->args, strdup((*it).c_str()));
+		}
+	}
+	if(jT.candidateMachines.size() > 0) {
+		for(vector<string>::const_iterator it = jT.candidateMachines.begin(); it != jT.candidateMachines.end(); ++it) {
+			drmaa2_list_add(jt->candidateMachines, strdup((*it).c_str()));
+		}
+	}
+	jt->deadlineTime = jT.deadlineTime;
+	if(jT.email.size() > 0) {
+		for(list<string>::const_iterator it = jT.email.begin(); it != jT.email.end(); ++it) {
+			drmaa2_list_add(jt->email, strdup((*it).c_str()));
+		}
+	}
+	jt->emailOnStarted = jT.emailOnStarted ? DRMAA2_TRUE : DRMAA2_FALSE;
+	jt->emailOnTerminated = jT.emailOnTerminated ? DRMAA2_TRUE : DRMAA2_FALSE;
+	if(jT.errorPath.length() > 0)
+		jt->errorPath = (drmaa2_string)strdup(jT.errorPath.c_str());
+	if(jT.inputPath.length() > 0)
+		jt->inputPath = (drmaa2_string)strdup(jT.inputPath.c_str());
+	if(jT.jobCategory.length() > 0)
+		jt->jobCategory = (drmaa2_string)strdup(jT.jobCategory.c_str());
+	if(jT.jobEnvironment.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.jobEnvironment.begin(); it!=jT.jobEnvironment.end(); ++it) {
+			drmaa2_dict_set(jt->jobEnvironment, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	if(jT.jobName.length() > 0) {
+		jt->jobName = (drmaa2_string)strdup(jT.jobName.c_str());
+	}
+	jt->joinFiles = jT.joinFiles ? DRMAA2_TRUE : DRMAA2_FALSE;
+	jt->machineArch = (drmaa2_cpu)jT.machineArch;
+	jt->machineOS = (drmaa2_os)jT.machineOS;
+	jt->maxSlots = jT.maxSlots;
+	jt->minPhysMemory = jT.minPhysMemory;
+	jt->minSlots = jT.minSlots;
+	if(jT.outputPath.length() > 0)
+		jt->outputPath = (drmaa2_string)strdup(jT.outputPath.c_str());
+	jt->priority = jT.priority;
+	if(jT.queueName.length() > 0)
+		jt->queueName = (drmaa2_string)strdup(jT.queueName.c_str());
+	if(jT.remoteCommand.length() > 0)
+		jt->remoteCommand = (drmaa2_string)strdup(jT.remoteCommand.c_str());
+	jt->rerunnable = jT.rerunnable ? DRMAA2_TRUE : DRMAA2_FALSE;
+	if(jT.reservationId.length() > 0)
+		jt->reservationId = (drmaa2_string)strdup(jT.reservationId.c_str());
+	if(jT.resourceLimits.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.resourceLimits.begin(); it!=jT.resourceLimits.end(); ++it) {
+			drmaa2_dict_set(jt->resourceLimits, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	if(jT.stageInFiles.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.stageInFiles.begin(); it!=jT.stageInFiles.end(); ++it) {
+			drmaa2_dict_set(jt->stageInFiles, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	if(jT.stageOutFiles.size() > 0) {
+		for (std::map<string,string>::const_iterator it=jT.stageOutFiles.begin(); it!=jT.stageOutFiles.end(); ++it) {
+			drmaa2_dict_set(jt->stageOutFiles, strdup(it->first.c_str()), strdup(it->second.c_str()));
+		}
+	}
+	jt->startTime = jT.startTime;
+	jt->submitAsHold = jT.submitAsHold ? DRMAA2_TRUE : DRMAA2_FALSE;
+	if(jT.workingDirectory.length() > 0)
+		jt->workingDirectory = (drmaa2_string)strdup(jT.workingDirectory.c_str());
+	return jt;
 }
 
 /**
@@ -1450,8 +2153,14 @@ drmaa2_jtemplate drmaa2_j_get_jtemplate(const drmaa2_j j) {
  */
 
 drmaa2_error drmaa2_j_suspend(drmaa2_j j) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	string subState;
+	Job *obj = reinterpret_cast<Job *>(j);
+	obj->suspend();
+	const JobState &jState = obj->getState(subState);
+	if(jState == SUSPENDED)
+		return DRMAA2_SUCCESS;
+	else
+		return DRMAA2_INVALID_STATE;
 }
 
 /**
@@ -1467,8 +2176,14 @@ drmaa2_error drmaa2_j_suspend(drmaa2_j j) {
  */
 
 drmaa2_error drmaa2_j_resume(drmaa2_j j) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	string subState;
+	Job *obj = reinterpret_cast<Job *>(j);
+	obj->resume();
+	const JobState &jState = obj->getState(subState);
+	if(jState == RUNNING)
+		return DRMAA2_SUCCESS;
+	else
+		return DRMAA2_INVALID_STATE;
 }
 
 /**
@@ -1484,8 +2199,14 @@ drmaa2_error drmaa2_j_resume(drmaa2_j j) {
  */
 
 drmaa2_error drmaa2_j_hold(drmaa2_j j) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	string subState;
+	Job *obj = reinterpret_cast<Job *>(j);
+	obj->hold();
+	const JobState &jState = obj->getState(subState);
+	if(jState == QUEUED_HELD || jState == REQUEUED_HELD)
+		return DRMAA2_SUCCESS;
+	else
+		return DRMAA2_INVALID_STATE;
 }
 
 /**
@@ -1501,8 +2222,14 @@ drmaa2_error drmaa2_j_hold(drmaa2_j j) {
  */
 
 drmaa2_error drmaa2_j_release(drmaa2_j j) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	string subState;
+	Job *obj = reinterpret_cast<Job *>(j);
+	obj->release();
+	const JobState &jState = obj->getState(subState);
+	if(jState == RUNNING)
+		return DRMAA2_SUCCESS;
+	else
+		return DRMAA2_INVALID_STATE;
 }
 
 /**
@@ -1519,8 +2246,14 @@ drmaa2_error drmaa2_j_release(drmaa2_j j) {
  */
 
 drmaa2_error drmaa2_j_terminate(drmaa2_j j) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	string subState;
+	Job *obj = reinterpret_cast<Job *>(j);
+	obj->terminate();
+	const JobState &jState = obj->getState(subState);
+	if(jState == DONE)
+		return DRMAA2_SUCCESS;
+	else
+		return DRMAA2_INVALID_STATE;
 }
 
 /**
@@ -1534,7 +2267,8 @@ drmaa2_error drmaa2_j_terminate(drmaa2_j j) {
  *
  */
 drmaa2_error drmaa2_j_reap(drmaa2_j j) {
-	//TODO Add Code here
+	Job *obj = reinterpret_cast<Job *>(j);
+	obj->reap();
 	return DRMAA2_SUCCESS;
 }
 
@@ -1550,8 +2284,11 @@ drmaa2_error drmaa2_j_reap(drmaa2_j j) {
  * 		drmaa2_jstate - returns current drmaa2_job state
  */
 drmaa2_jstate drmaa2_j_get_state(const drmaa2_j j, drmaa2_string * substate) {
-	//TODO Add Code here
-	return DRMAA2_DONE;
+	string subState;
+	Job *obj = reinterpret_cast<Job *>(j);
+	const JobState &jState = obj->getState(subState);
+	*substate = strdup(subState.c_str());
+	return (drmaa2_jstate)jState;
 }
 
 /**
@@ -1567,8 +2304,41 @@ drmaa2_jstate drmaa2_j_get_state(const drmaa2_j j, drmaa2_string * substate) {
  *
  */
 drmaa2_jinfo drmaa2_j_get_info(const drmaa2_j j) {
-	//TODO Add Code here
-	return NULL;
+	if(j == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	drmaa2_jinfo ji = drmaa2_jinfo_create();
+	Job *obj = reinterpret_cast<Job *>(j);
+	const JobInfo& jI = obj->getJobInfo();
+	if(jI.allocatedMachines.size() > 0) {
+		for(vector<string>::const_iterator it = jI.allocatedMachines.begin(); it != jI.allocatedMachines.end(); ++it) {
+			drmaa2_list_add(ji->allocatedMachines, strdup((*it).c_str()));
+		}
+	}
+	if(jI.annotation.length() > 0)
+		ji->annotation = (drmaa2_string)strdup(jI.annotation.c_str());
+	ji->cpuTime = jI.cpuTime;
+	ji->dispatchTime = jI.dispatchTime;
+	ji->exitStatus = jI.exitStatus;
+	ji->finishTime = jI.finishTime;
+	if(jI.jobId.length() > 0)
+		ji->jobId = (drmaa2_string)strdup(jI.jobId.c_str());
+	if(jI.jobOwner.length() > 0)
+		ji->jobOwner = (drmaa2_string)strdup(jI.jobOwner.c_str());
+	ji->jobState = (drmaa2_jstate)jI.jobState;
+	if(jI.jobSubState.length() > 0)
+		ji->jobSubState = (drmaa2_string)strdup(jI.jobSubState.c_str());
+	if(jI.queueName.length() > 0)
+		ji->queueName = (drmaa2_string)strdup(jI.queueName.c_str());
+	ji->slots = jI.slots;
+	if(jI.submissionMachine.length() > 0)
+		ji->submissionMachine = (drmaa2_string)strdup(jI.submissionMachine.c_str());
+	ji->submissionTime = jI.submissionTime;
+	if(jI.terminatingSignal.length() > 0)
+		ji->terminatingSignal = (drmaa2_string)strdup(jI.terminatingSignal.c_str());
+	ji->wallclockTime = jI.wallclockTime;
+	return ji;
 }
 
 /**
@@ -1750,8 +2520,18 @@ drmaa2_bool drmaa2_supports(const drmaa2_capability c) {
  */
 drmaa2_jsession drmaa2_create_jsession(const char *session_name,
 		const char *contact) {
-	//TODO Add Code here
-	return NULL;
+	if(session_name == NULL || contact == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	try {
+		const JobSession &jobSessionObj_ = sessionManagerObj_->createJobSession(string(session_name), string(contact));
+		return (drmaa2_jsession)&jobSessionObj_;
+	} catch(InvalidArgumentException& ex) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
 }
 
 /**
@@ -1784,8 +2564,18 @@ drmaa2_rsession drmaa2_create_rsession(const char *session_name,
  */
 
 drmaa2_jsession drmaa2_open_jsession(const char *session_name) {
-	//TODO Add Code here
-	return NULL;
+	if(session_name == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	try{
+		const JobSession &jobSessionObj_ = sessionManagerObj_->openJobSession(string(session_name));
+		return (drmaa2_jsession)&jobSessionObj_;
+	}catch(exception &ex){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
 }
 
 /**
@@ -1827,7 +2617,9 @@ drmaa2_msession drmaa2_open_msession(const char *session_name) {
  *  	DRMAA2_INVALID_SESSION if session is invalid
  */
 drmaa2_error drmaa2_close_jsession(drmaa2_jsession js) {
-	//TODO Add Code here
+	if(js == NULL){
+		return DRMAA2_INVALID_SESSION;
+	}
 	return DRMAA2_SUCCESS;
 }
 

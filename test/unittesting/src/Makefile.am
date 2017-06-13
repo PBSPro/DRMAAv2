@@ -44,6 +44,7 @@ test_drmaa_SOURCES=	SessionManagerTest.cpp \
 			ReservationSessionTest.cpp \
 			drmaa2dictTest.cpp \
 			MonitoringSessionTest.cpp \
+			JobApiTest.cpp \
 			runtest.cpp
 						
 test_drmaa_LDADD = ../../../api/libdrmaav2.la -lcppunit

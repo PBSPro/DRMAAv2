@@ -68,11 +68,13 @@ private:
 	map<string, ReservationSessionImpl> _reservationSessionMap;
 	MonitoringSessionImpl _mSession;
 	static pthread_mutex_t _posixMutex;
+	bool initialized;
 
 	/**
 	 * @brief default constructor
 	 */
 	SessionManagerImpl() {
+		initialized = false;
 	}
 
 	/**

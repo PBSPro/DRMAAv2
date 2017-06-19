@@ -580,6 +580,35 @@ drmaa2_jinfo drmaa2_jinfo_create(void) {
 }
 
 /**
+ * @brief creates a drmaa2_rinfo structure and returns its pointer
+ *
+ * @param - none
+ *
+ * @return
+ * 		drmaa2_rinfo - pointer to newly allocated drmaa2_jinfo structure
+ *		NULL - if allocation fails and DRMAA2_OUT_OF_RESOURCE error is set
+ *
+ */
+
+drmaa2_rinfo drmaa2_rinfo_create(void) {
+	drmaa2_rinfo ri;
+	try{
+		ri = new drmaa2_rinfo_s;
+	}catch(bad_alloc& ex){
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
+	ri->usersACL = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	ri->reservedMachines = drmaa2_list_create(DRMAA2_SLOTINFOLIST, NULL);
+	if(ri->usersACL == NULL || ri->reservedMachines == NULL) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		drmaa2_rinfo_free(&ri);
+		return NULL;
+	}
+	return ri;
+}
+
+/**
  * @brief frees the drmaa2_job info structure and its inner data types
  *
  * @param[in]  ji -	pointer to drmaa2_job info structure.
@@ -629,7 +658,11 @@ void drmaa2_jinfo_free(drmaa2_jinfo * ji) {
  *
  */
 void drmaa2_slotinfo_free(drmaa2_slotinfo * si) {
-	//TODO Add Code here
+	if (*si != NULL) {
+		drmaa2_string_free(&((*si)->machineName));
+		free(*si);
+		*si = NULL;
+	}
 }
 
 /**
@@ -641,7 +674,31 @@ void drmaa2_slotinfo_free(drmaa2_slotinfo * si) {
  *
  */
 void drmaa2_rinfo_free(drmaa2_rinfo * ri) {
-	//TODO Add Code here
+	int size = 0, i = 0;
+	char *tmp = NULL;
+	if (*ri != NULL) {
+		drmaa2_string_free(&((*ri)->reservationId));
+		drmaa2_string_free(&((*ri)->reservationName));
+		size = drmaa2_list_size((*ri)->usersACL);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				tmp = (char *)drmaa2_list_get((*ri)->usersACL, i);
+				free(tmp);
+			}
+		}
+		drmaa2_list_free  (&((*ri)->usersACL));
+		size = drmaa2_list_size((*ri)->reservedMachines);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				tmp = (char *)drmaa2_list_get((*ri)->reservedMachines, i);
+				free(tmp);
+			}
+		}
+		drmaa2_list_free  (&((*ri)->reservedMachines));
+		free((*ri));
+		*ri = NULL;
+	}
+	return;
 }
 
 /**
@@ -754,8 +811,22 @@ void drmaa2_jtemplate_free(drmaa2_jtemplate * jt) {
  */
 
 drmaa2_rtemplate drmaa2_rtemplate_create(void) {
-	//TODO Add Code here
-	return NULL;
+	drmaa2_rtemplate rt;
+	try{
+		rt = new drmaa2_rtemplate_s();
+	}catch(bad_alloc &ex){
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
+	rt->usersACL = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	rt->candidateMachines = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	if (rt->usersACL == NULL || rt->candidateMachines == NULL) {
+		drmaa2_rtemplate_free(&rt);
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
+	return rt;
+
 }
 
 /**
@@ -767,7 +838,33 @@ drmaa2_rtemplate drmaa2_rtemplate_create(void) {
  *
  */
 void drmaa2_rtemplate_free(drmaa2_rtemplate * rt) {
-	//TODO Add Code here
+	int size = 0, i = 0;
+	char *nodeVal;
+	if(*rt) {
+		if((*rt)->reservationName)
+			drmaa2_string_free(&(*rt)->reservationName);
+		if((*rt)->jobCategory)
+			drmaa2_string_free(&(*rt)->jobCategory);
+		size = drmaa2_list_size((*rt)->usersACL);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				nodeVal = (char *)drmaa2_list_get((*rt)->usersACL, i);
+				free(nodeVal);
+			}
+		}
+		drmaa2_list_free(&(*rt)->usersACL);
+		size = drmaa2_list_size((*rt)->candidateMachines);
+		if(size > 0) {
+			for(i = 0; i < size; i++) {
+				nodeVal = (char *)drmaa2_list_get((*rt)->candidateMachines, i);
+				free(nodeVal);
+			}
+		}
+		drmaa2_list_free(&(*rt)->candidateMachines);
+		free(*rt);
+		*rt = NULL;
+	}
+	return;
 }
 
 /**
@@ -791,7 +888,11 @@ void drmaa2_notification_free(drmaa2_notification * n) {
  *
  */
 void drmaa2_queueinfo_free(drmaa2_queueinfo * qi) {
-	//TODO Add Code here
+	if (*qi != NULL) {
+		drmaa2_string_free(&((*qi)->name));
+		free(*qi);
+		*qi = NULL;
+	}
 }
 
 /**
@@ -803,7 +904,12 @@ void drmaa2_queueinfo_free(drmaa2_queueinfo * qi) {
  *
  */
 void drmaa2_version_free(drmaa2_version * v) {
-	//TODO Add Code here
+	if(*v != NULL) {
+		drmaa2_string_free(&(*v)->major);
+		drmaa2_string_free(&(*v)->minor);
+		free (*v);
+		*v = NULL;
+	}
 }
 
 /**
@@ -815,7 +921,12 @@ void drmaa2_version_free(drmaa2_version * v) {
  *
  */
 void drmaa2_machineinfo_free(drmaa2_machineinfo * mi) {
-	//TODO Add Code here
+	if(*mi != NULL) {
+		drmaa2_version_free(&(*mi)->machineOSVersion);
+		drmaa2_string_free(&(*mi)->name);
+		free (*mi);
+		*mi = NULL;
+	}
 }
 
 /**
@@ -947,17 +1058,14 @@ drmaa2_error drmaa2_set_instance_value(void *instance, const char *name,
  *  @return - None
  */
 void drmaa2_jsession_free(drmaa2_jsession * js) {
-	if(*js == NULL){
-		lasterror = DRMAA2_INVALID_ARGUMENT;
-		return;
-	}
-	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
-	JobSession *obj = reinterpret_cast<JobSession *>(*js);
-	try {
-		sessionManagerObj_->destroyJobSession(obj->getSessionName());
-	} catch(InvalidArgumentException& ex) {
-		lasterror = DRMAA2_INVALID_ARGUMENT;
-		return;
+	if(*js) {
+		SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+		JobSession *obj = reinterpret_cast<JobSession *>(*js);
+		try {
+			sessionManagerObj_->destroyJobSession(obj->getSessionName());
+		} catch(InvalidArgumentException& ex) {
+			return;
+		}
 	}
 }
 /**
@@ -968,7 +1076,15 @@ void drmaa2_jsession_free(drmaa2_jsession * js) {
  *  @return - None
  */
 void drmaa2_rsession_free(drmaa2_rsession * rs) {
-	//TODO Add Code here
+	if(*rs) {
+		SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+		ReservationSession *obj = reinterpret_cast<ReservationSession *>(*rs);
+		try {
+			sessionManagerObj_->destroyReservationSession(obj->getSessionName());
+		} catch(InvalidArgumentException& ex) {
+			return;
+		}
+	}
 }
 
 /**
@@ -1017,7 +1133,10 @@ void drmaa2_jarray_free(drmaa2_jarray * ja) {
  *  @return - None
  */
 void drmaa2_r_free(drmaa2_r * r) {
-	//TODO Add Code here
+	if(*r == NULL)
+		return;
+	Reservation *obj = reinterpret_cast<Reservation *>(*r);
+	delete obj;
 }
 
 /**
@@ -1032,8 +1151,12 @@ void drmaa2_r_free(drmaa2_r * r) {
  * 				set to DRMAA2_INVALID_SESSION
  */
 drmaa2_string drmaa2_rsession_get_contact(const drmaa2_rsession rs) {
-	//TODO Add Code here
-	return NULL;
+	if(rs == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	ReservationSession *obj = reinterpret_cast<ReservationSession *>(rs);
+	return (drmaa2_string)strdup(obj->getContact().c_str());
 }
 
 /**
@@ -1048,8 +1171,12 @@ drmaa2_string drmaa2_rsession_get_contact(const drmaa2_rsession rs) {
  * 				set to DRMAA2_INVALID_SESSION
  */
 drmaa2_string drmaa2_rsession_get_session_name(const drmaa2_rsession rs) {
-	//TODO Add Code here
-	return NULL;
+	if(rs == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	ReservationSession *obj = reinterpret_cast<ReservationSession *>(rs);
+	return (drmaa2_string)strdup(obj->getSessionName().c_str());
 }
 
 /**
@@ -1069,8 +1196,17 @@ drmaa2_string drmaa2_rsession_get_session_name(const drmaa2_rsession rs) {
  */
 drmaa2_r drmaa2_rsession_get_reservation(const drmaa2_rsession rs,
 		const drmaa2_string reservationId) {
-	//TODO Add Code here
-	return NULL;
+	if(rs == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	ReservationSession *obj = reinterpret_cast<ReservationSession *>(rs);
+	const Reservation &res = obj->getReservation(string(reservationId));
+	if(&res != NULL) {
+		void *r = const_cast<Reservation*>(&res);
+		return (drmaa2_r)r;
+	} else
+		return NULL;
 }
 
 /**
@@ -1095,8 +1231,49 @@ drmaa2_r drmaa2_rsession_get_reservation(const drmaa2_rsession rs,
 
 drmaa2_r drmaa2_rsession_request_reservation(const drmaa2_rsession rs,
 		const drmaa2_rtemplate rt) {
-	//TODO Add Code here
-	return NULL;
+	if (rs == NULL || rt == NULL){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
+
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	ReservationSession *reservationSession = reinterpret_cast<ReservationSession *>(rs);
+	int size = 0;
+
+	ReservationTemplate reservationTemplate;
+	size = drmaa2_list_size(rt->candidateMachines);
+	if(size > 0) {
+		for(int i = 0 ; i < size ; i++){
+			reservationTemplate.candidateMachines.push_back(
+					string((char*)drmaa2_list_get(rt->candidateMachines, i)));
+		}
+	}
+	reservationTemplate.duration = rt->duration;
+	reservationTemplate.endTime = rt->endTime;
+	if(rt->reservationName!=NULL){
+		reservationTemplate.reservationName.assign(rt->reservationName);
+	}
+	reservationTemplate.startTime = rt->startTime;
+	reservationTemplate.machineArch = (CpuArchitecture)rt->machineArch;
+	reservationTemplate.machineOS = (OperatingSystem)rt->machineOS;
+	reservationTemplate.maxSlots = rt->maxSlots;
+	reservationTemplate.minPhysMemory = rt->minPhysMemory;
+	reservationTemplate.minSlots = rt->minSlots;
+	size = drmaa2_list_size(rt->usersACL);
+	if(size > 0) {
+		for(int i = 0 ; i < size ; i++){
+			reservationTemplate.usersACL.push_back(
+					string((char*)drmaa2_list_get(rt->usersACL, i)));
+		}
+	}
+	try{
+		const Reservation &r = reservationSession->requestReservation(reservationTemplate);
+		void *res = const_cast<Reservation *>(&r);
+		return (drmaa2_r)res;
+	}catch(ImplementationSpecificException& ex){
+		lasterror = DRMAA2_DENIED_BY_DRMS;
+		return NULL;
+	}
 }
 
 /**
@@ -1112,7 +1289,20 @@ drmaa2_r drmaa2_rsession_request_reservation(const drmaa2_rsession rs,
  *
  */
 drmaa2_r_list drmaa2_rsession_get_reservations(const drmaa2_rsession rs) {
-	//TODO Add Code here
+	if (rs == NULL ){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
+	ReservationSession *reservationSession = reinterpret_cast<ReservationSession *>(rs);
+	ReservationList rL = reservationSession->getReservations();
+	if(rL.size() > 0) {
+		drmaa2_r_list rl = drmaa2_list_create(DRMAA2_RESERVATIONLIST, NULL);
+		for(list<Reservation*>::const_iterator it = rL.begin(); it != rL.end(); ++it) {
+			drmaa2_list_add(rl, (void *)const_cast<Reservation*>(*it));
+		}
+		return rl;
+	}
+	lasterror = DRMAA2_INVALID_SESSION;
 	return NULL;
 }
 /**
@@ -1127,8 +1317,12 @@ drmaa2_r_list drmaa2_rsession_get_reservations(const drmaa2_rsession rs) {
  *
  */
 drmaa2_string drmaa2_r_get_id(const drmaa2_r r) {
-	//TODO Add Code here
-	return NULL;
+	if(r == NULL ){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	Reservation *obj = reinterpret_cast<Reservation *>(r);
+	return (drmaa2_string)strdup(obj->getReservationId().c_str());
 }
 /**
  * @brief Get the reservation session name from a given reservation object
@@ -1143,7 +1337,7 @@ drmaa2_string drmaa2_r_get_id(const drmaa2_r r) {
  *
  */
 drmaa2_string drmaa2_r_get_session_name(const drmaa2_r r) {
-	//TODO Add Code here
+	lasterror = DRMAA2_INVALID_ARGUMENT;
 	return NULL;
 }
 
@@ -1161,8 +1355,38 @@ drmaa2_string drmaa2_r_get_session_name(const drmaa2_r r) {
  */
 
 drmaa2_rtemplate drmaa2_r_get_reservation_template(const drmaa2_r r) {
-	//TODO Add Code here
-	return NULL;
+	if(r == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	Reservation *obj = reinterpret_cast<Reservation *>(r);
+	const ReservationTemplate &rT = obj->getReservationTemplate();
+	drmaa2_rtemplate rt = drmaa2_rtemplate_create();
+	if(rt == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	if(rT.candidateMachines.size() > 0) {
+		for(vector<string>::const_iterator it = rT.candidateMachines.begin(); it != rT.candidateMachines.end(); ++it) {
+			drmaa2_list_add(rt->candidateMachines,strdup((*it).c_str()));
+		}
+	}
+	rt->duration = rT.duration;
+	rt->endTime = rT.endTime;
+	rt->machineArch = (drmaa2_cpu)rT.machineArch;
+	rt->machineOS = (drmaa2_os)rT.machineOS;
+	rt->maxSlots = rT.maxSlots;
+	rt->minPhysMemory = rT.minPhysMemory;
+	rt->minSlots = rT.minSlots;
+	if(rT.reservationName.length() > 0)
+		rt->reservationName = strdup(rT.reservationName.c_str());
+	rt->startTime = rT.startTime;
+	if(rT.usersACL.size() > 0) {
+		for(vector<string>::const_iterator it = rT.usersACL.begin(); it != rT.usersACL.end(); ++it) {
+			drmaa2_list_add(rt->usersACL,strdup((*it).c_str()));
+		}
+	}
+	return rt;
 }
 
 /**
@@ -1178,8 +1402,29 @@ drmaa2_rtemplate drmaa2_r_get_reservation_template(const drmaa2_r r) {
  *
  */
 drmaa2_rinfo drmaa2_r_get_info(const drmaa2_r r) {
-	//TODO Add Code here
-	return NULL;
+	if(r == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	Reservation *obj = reinterpret_cast<Reservation *>(r);
+	const ReservationInfo &rI = obj->getInfo();
+	drmaa2_rinfo ri = drmaa2_rinfo_create();
+	if(rI.reservationId.length() > 0)
+		ri->reservationId = strdup(rI.reservationId.c_str());
+	if(rI.reservationName.length() > 0)
+		ri->reservationName = strdup(rI.reservationName.c_str());
+	ri->reservedEndTime = rI.reservedEndTime;
+	if(rI.reservedMachines.size() > 0) {
+		//TODO: Need to add
+	}
+	ri->reservedSlots = rI.reservedSlots;
+	ri->reservedStartTime = rI.reservedStartTime;
+	if(rI.usersACL.size() > 0) {
+		for(set<string>::const_iterator it = rI.usersACL.begin(); it != rI.usersACL.end(); ++it) {
+			drmaa2_list_add(ri->reservedMachines,strdup((*it).c_str()));
+		}
+	}
+	return ri;
 }
 
 /**
@@ -1194,8 +1439,13 @@ drmaa2_rinfo drmaa2_r_get_info(const drmaa2_r r) {
  *
  */
 drmaa2_error drmaa2_r_terminate(drmaa2_r r) {
-	//TODO Add Code here
-	return DRMAA2_SUCCESS;
+	Reservation *obj = reinterpret_cast<Reservation *>(r);
+	try {
+		obj->terminate();
+		return DRMAA2_SUCCESS;
+	} catch (ImplementationSpecificException &ex) {
+			return DRMAA2_INVALID_STATE;
+	}
 }
 
 /**
@@ -2387,8 +2637,22 @@ drmaa2_error drmaa2_j_wait_terminated(const drmaa2_j j, const time_t timeout) {
  * 		NULL if fails
  */
 drmaa2_r_list drmaa2_msession_get_all_reservations(const drmaa2_msession ms) {
-	//TODO Add Code here
-	return NULL;
+	if(ms == NULL){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
+	MonitoringSession *mS = reinterpret_cast<MonitoringSession*>(ms);
+	const ReservationList rL = mS->getAllReservations();
+	drmaa2_r_list r_list = drmaa2_list_create(DRMAA2_RESERVATIONLIST, NULL);
+	if(rL.size() > 0) {
+		for(ReservationList::const_iterator it = rL.begin(); it != rL.end() ; ++it ){
+			drmaa2_list_add(r_list, (void*)(*it));
+		}
+		return r_list;
+	} else {
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
 }
 /**
  *  @brief  Returns the list of all jobs i.e. DRMAA2 jobs and the jobs
@@ -2407,8 +2671,54 @@ drmaa2_r_list drmaa2_msession_get_all_reservations(const drmaa2_msession ms) {
  */
 drmaa2_j_list drmaa2_msession_get_all_jobs(const drmaa2_msession ms,
 		const drmaa2_jinfo filter) {
-	//TODO Add Code here
-	return NULL;
+	if(ms == NULL){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
+	int size;
+	JobInfo jInfo;
+	MonitoringSession *mS = reinterpret_cast<MonitoringSession*>(ms);
+	size = filter->allocatedMachines->size;
+	if(size > 0) {
+		for(int i = 0; i < size; i++) {
+			SlotInfo sInfo;
+			drmaa2_slotinfo s = (drmaa2_slotinfo)drmaa2_list_get(filter->allocatedMachines, i);
+			jInfo.allocatedMachines.push_back(string(s->machineName));
+		}
+	}
+	if(filter->annotation)
+		jInfo.annotation.assign(filter->annotation);
+	jInfo.cpuTime = filter->cpuTime;
+	jInfo.dispatchTime = filter->dispatchTime;
+	jInfo.exitStatus = filter->exitStatus;
+	jInfo.finishTime = filter->finishTime;
+	if(filter->jobId)
+		jInfo.jobId.assign(filter->jobId);
+	if(filter->jobOwner)
+		jInfo.jobOwner.assign(filter->jobOwner);
+	jInfo.jobState = (JobState)filter->jobState;
+	if(filter->jobSubState)
+		jInfo.jobSubState.assign(filter->jobSubState);
+	if(filter->queueName)
+		jInfo.queueName.assign(filter->queueName);
+	jInfo.slots = filter->slots;
+	if(filter->submissionMachine)
+		jInfo.submissionMachine.assign(filter->submissionMachine);
+	jInfo.submissionTime = filter->submissionTime;
+	if(filter->terminatingSignal)
+		jInfo.terminatingSignal.assign(filter->terminatingSignal);
+	jInfo.wallclockTime = filter->wallclockTime;
+	const JobList jL = mS->getAllJobs(jInfo);
+	drmaa2_r_list j_list = drmaa2_list_create(DRMAA2_JOBLIST, NULL);
+	if(jL.size() > 0) {
+		for(JobList::const_iterator it = jL.begin(); it != jL.end() ; ++it ){
+			drmaa2_list_add(j_list, (void*)(*it));
+		}
+		return j_list;
+	} else {
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
 }
 
 /**
@@ -2425,8 +2735,38 @@ drmaa2_j_list drmaa2_msession_get_all_jobs(const drmaa2_msession ms,
  */
 drmaa2_queueinfo_list drmaa2_msession_get_all_queues(const drmaa2_msession ms,
 		const drmaa2_string_list names) {
-	//TODO Add Code here
-	return NULL;
+	if(ms == NULL){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
+	MonitoringSession *mS = reinterpret_cast<MonitoringSession*>(ms);
+	list<string> gList;
+	int size = drmaa2_list_size(names);
+	if(size > 0) {
+		for(int i = 0; i < size; i++)
+		gList.push_back(string((char *)drmaa2_list_get(names, i)));
+	}
+	const QueueInfoList qL = mS->getAllQueues(gList);
+	drmaa2_queueinfo_list q_list = drmaa2_list_create(DRMAA2_QUEUEINFOLIST, NULL);
+	if(qL.size() > 0) {
+		for(QueueInfoList::const_iterator it = qL.begin(); it != qL.end() ; ++it ){
+			try {
+				drmaa2_queueinfo qi = new drmaa2_queueinfo_s();
+				if((*it).name.length() > 0) {
+					qi->name = strdup((char *)(*it).name.c_str());
+					drmaa2_list_add(q_list, qi);
+				}
+			} catch (bad_alloc &ex) {
+				drmaa2_list_free(&q_list);
+				lasterror = DRMAA2_OUT_OF_RESOURCE;
+				return NULL;
+			}
+		}
+		return q_list;
+	}else {
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
 }
 
 /**
@@ -2443,8 +2783,50 @@ drmaa2_queueinfo_list drmaa2_msession_get_all_queues(const drmaa2_msession ms,
  */
 drmaa2_machineinfo_list drmaa2_msession_get_all_machines(
 		const drmaa2_msession ms, const drmaa2_string_list names) {
-	//TODO Add Code here
-	return NULL;
+	if(ms == NULL){
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
+	MonitoringSession *mS = reinterpret_cast<MonitoringSession*>(ms);
+	list<string> mList;
+	int size = drmaa2_list_size(names);
+	if(size > 0) {
+		for(int i = 0; i < size; i++)
+		mList.push_back(string((char *)drmaa2_list_get(names, i)));
+	}
+	const MachineInfoList mL = mS->getAllMachines(mList);
+	drmaa2_queueinfo_list m_list = drmaa2_list_create(DRMAA2_MACHINEINFOLIST, NULL);
+	if(mL.size() > 0) {
+		for(MachineInfoList::const_iterator it = mL.begin(); it != mL.end() ; ++it ){
+			try {
+				drmaa2_machineinfo mi = new drmaa2_machineinfo_s();
+				mi->available = (*it).available ? DRMAA2_TRUE : DRMAA2_FALSE;
+				mi->coresPerSocket = (*it).coresPerSocket;
+				mi->load = (*it).load;
+				mi->machineArch = (drmaa2_cpu)(*it).machineArch;
+				mi->machineOS = (drmaa2_os)(*it).machineOS;
+				if((*it).machineOSVersion.minor.length() > 0)
+					mi->machineOSVersion->minor = strdup((char*)(*it).machineOSVersion.minor.c_str());
+				if((*it).machineOSVersion.major.length() > 0)
+					mi->machineOSVersion->major = strdup((char*)(*it).machineOSVersion.major.c_str());
+				if((*it).name.length() > 0)
+					mi->name = strdup((char*)(*it).name.c_str());
+				mi->physMemory = (*it).physMemory;
+				mi->sockets = (*it).sockets;
+				mi->threadsPerCore = (*it).threadsPerCore;
+				mi->virtMemory = (*it).virtMemory;
+				drmaa2_list_add(m_list, mi);
+			} catch (bad_alloc &ex) {
+				drmaa2_list_free(&m_list);
+				lasterror = DRMAA2_OUT_OF_RESOURCE;
+				return NULL;
+			}
+		}
+		return m_list;
+	} else {
+		lasterror = DRMAA2_INVALID_SESSION;
+		return NULL;
+	}
 }
 
 /**
@@ -2455,8 +2837,7 @@ drmaa2_machineinfo_list drmaa2_msession_get_all_machines(
  *  @return drmaa2_string
  */
 drmaa2_string drmaa2_get_drms_name(void) {
-	//TODO Add Code here
-	return (strdup( drmaa2::Singleton<drmaa2::SessionManager, drmaa2::SessionManagerImpl>::getInstance()->getDrmaaName().c_str()));
+	return (strdup( drmaa2::Singleton<drmaa2::SessionManager, drmaa2::SessionManagerImpl>::getInstance()->getDrmsName().c_str()));
 }
 
 /**
@@ -2467,8 +2848,16 @@ drmaa2_string drmaa2_get_drms_name(void) {
  *  @return drmaa2_version
  */
 drmaa2_version drmaa2_get_drms_version(void) {
-	//TODO Add Code here
-	return NULL;
+	const Version V = drmaa2::Singleton<drmaa2::SessionManager, drmaa2::SessionManagerImpl>::getInstance()->getDrmsVersion();
+	try {
+		drmaa2_version v = new drmaa2_version_s();
+		v->minor = strdup(V.minor.c_str());
+		v->major = strdup(V.major.c_str());
+		return v;
+	} catch (bad_alloc &ex) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
 }
 
 /**
@@ -2479,8 +2868,7 @@ drmaa2_version drmaa2_get_drms_version(void) {
  *  @return drmaa2_string
  */
 drmaa2_string drmaa2_get_drmaa_name(void) {
-	//TODO Add Code here
-	return NULL;
+	return (strdup( drmaa2::Singleton<drmaa2::SessionManager, drmaa2::SessionManagerImpl>::getInstance()->getDrmaaName().c_str()));
 }
 
 /**
@@ -2491,8 +2879,16 @@ drmaa2_string drmaa2_get_drmaa_name(void) {
  *  @return drmaa2_version
  */
 drmaa2_version drmaa2_get_drmaa_version(void) {
-	//TODO Add Code here
-	return NULL;
+	const Version V = drmaa2::Singleton<drmaa2::SessionManager, drmaa2::SessionManagerImpl>::getInstance()->getDrmaaVersion();
+	try {
+		drmaa2_version v = new drmaa2_version_s();
+		v->minor = strdup(V.minor.c_str());
+		v->major = strdup(V.major.c_str());
+		return v;
+	} catch (bad_alloc &ex) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
+	}
 }
 
 /**
@@ -2546,8 +2942,18 @@ drmaa2_jsession drmaa2_create_jsession(const char *session_name,
  */
 drmaa2_rsession drmaa2_create_rsession(const char *session_name,
 		const char *contact) {
-	//TODO Add Code here
-	return NULL;
+	if(session_name == NULL || contact == NULL) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	try {
+		const ReservationSession &reservationSessionObj_ = sessionManagerObj_->createReservationSession(string(session_name), string(contact));
+		return (drmaa2_rsession)&reservationSessionObj_;
+	} catch(InvalidArgumentException& ex) {
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
 }
 
 /**
@@ -2588,8 +2994,18 @@ drmaa2_jsession drmaa2_open_jsession(const char *session_name) {
  *  	NULL if sets drmaa2_lasterror_v to DRMAA2_INVALID_ARGUMENT error.
  */
 drmaa2_rsession drmaa2_open_rsession(const char *session_name) {
-	//TODO Add Code here
-	return NULL;
+	if(session_name == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	try{
+		const ReservationSession &reservationSessionObj_ = sessionManagerObj_->openReservationSession(string(session_name));
+		return (drmaa2_rsession)&reservationSessionObj_;
+	}catch(exception &ex){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
 }
 
 /**
@@ -2603,8 +3019,18 @@ drmaa2_rsession drmaa2_open_rsession(const char *session_name) {
  *  			Also sets drmaa2_lasterror_v to DRMAA2_INVALID_ARGUMENT error
  */
 drmaa2_msession drmaa2_open_msession(const char *session_name) {
-	//TODO Add Code here
-	return NULL;
+	if(session_name == NULL){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
+	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
+	try{
+		const MonitoringSession &monitoringSessionObj_ = sessionManagerObj_->openMonitoringSession(string(session_name));
+		return (drmaa2_msession)&monitoringSessionObj_;
+	}catch(exception &ex){
+		lasterror = DRMAA2_INVALID_ARGUMENT;
+		return NULL;
+	}
 }
 
 /**
@@ -2635,7 +3061,9 @@ drmaa2_error drmaa2_close_jsession(drmaa2_jsession js) {
  *
  */
 drmaa2_error drmaa2_close_rsession(drmaa2_rsession rs) {
-	//TODO Add Code here
+	if(rs == NULL){
+		return DRMAA2_INVALID_SESSION;
+	}
 	return DRMAA2_SUCCESS;
 }
 

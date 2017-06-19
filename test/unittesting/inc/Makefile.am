@@ -41,4 +41,6 @@ noinst_HEADERS = \
 	JobSessionTest.h \
 	ReservationSessionTest.h \
 	MonitoringSessionTest.h \
+	ReservationApiTest.h \
+	MonitoringSessionApiTest.h \
 	JobApiTest.h

@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_MONITORINGSESSIONIMPL_H_
-#define SRC_MONITORINGSESSIONIMPL_H_
+#ifndef INC_MONITORINGSESSIONIMPL_H_
+#define INC_MONITORINGSESSIONIMPL_H_
 
 #include <list>
 #include <string>
@@ -102,4 +102,4 @@ public:
 
 }
 
-#endif /* SRC_MONITORINGSESSIONIMPL_H_ */
+#endif /* INC_MONITORINGSESSIONIMPL_H_ */

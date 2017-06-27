@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef API_CPP_BINDING_OUTOFRESOURCEEXCEPTION_H_
-#define API_CPP_BINDING_OUTOFRESOURCEEXCEPTION_H_
+#ifndef INC_OUTOFRESOURCEEXCEPTION_H_
+#define INC_OUTOFRESOURCEEXCEPTION_H_
 
 #include <Drmaa2Exception.h>
 #include <Message.h>
@@ -69,4 +69,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* API_CPP_BINDING_OUTOFRESOURCEEXCEPTION_H_ */
+#endif /* INC_OUTOFRESOURCEEXCEPTION_H_ */

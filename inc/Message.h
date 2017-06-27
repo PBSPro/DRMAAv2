@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_MESSAGE_H_
-#define SRC_MESSAGE_H_
+#ifndef INC_MESSAGE_H_
+#define INC_MESSAGE_H_
 
 #include <string>
 
@@ -199,4 +199,4 @@ private:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_MESSAGE_H_ */
+#endif /* INC_MESSAGE_H_ */

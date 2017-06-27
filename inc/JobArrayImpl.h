@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_JOBARRAYIMPL_H_
-#define SRC_JOBARRAYIMPL_H_
+#ifndef INC_JOBARRAYIMPL_H_
+#define INC_JOBARRAYIMPL_H_
 
 #include <string>
 
@@ -176,4 +176,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_JOBARRAYIMPL_H_ */
+#endif /* INC_JOBARRAYIMPL_H_ */

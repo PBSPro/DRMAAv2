@@ -201,15 +201,17 @@ void drmaa2_r_list_default_callback(void **value) {
 drmaa2_list drmaa2_list_create(const drmaa2_listtype t,
 		const drmaa2_list_entryfree callback) {
 	drmaa2_list l = NULL;
-
-	l = (drmaa2_list) malloc(sizeof(drmaa2_list_s));
-	if (l != NULL) {
+	try {
+		l = new drmaa2_list_s();
 		l->free_callback = callback;
 		l->type = t;
 		l->size = 0;
 		l->head = NULL;
+		return l;
+	} catch (bad_alloc &ex) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
 	}
-	return l;
 }
 
 /**
@@ -230,9 +232,9 @@ void drmaa2_list_free(drmaa2_list * l) {
 		head = item->next;
 		if ((*l)->free_callback != NULL)
 			(*l)->free_callback((void **) &(item->data.value));
-		free(item);
+		delete item;
 	}
-	free(*l);
+	delete (*l);
 	*l = NULL;
 }
 
@@ -277,17 +279,16 @@ drmaa2_error drmaa2_list_add(drmaa2_list l, const void *value) {
 	if (l == NULL)
 		return DRMAA2_INVALID_ARGUMENT;
 
-	drmaa2_item item;
-	if ((item = (drmaa2_item) malloc(sizeof(drmaa2_item))) == NULL) {
-		return DRMAA2_INTERNAL;
+	try {
+		drmaa2_item item = new drmaa2_item_s();
+		item->data.value = value;
+		item->next = (drmaa2_item)l->head;
+		l->head = item;
+		l->size++;
+		return DRMAA2_SUCCESS;
+	} catch (bad_alloc &ex) {
+		return DRMAA2_OUT_OF_RESOURCE;
 	}
-	item->data.value = value;
-	item->next = (drmaa2_item)l->head;
-	l->head = item;
-	l->size++;
-
-	return DRMAA2_SUCCESS;
-
 }
 
 /**
@@ -314,7 +315,7 @@ drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos) {
 		l->size--;
 		if (l->free_callback != NULL)
 			l->free_callback((void **) prev->data.value);
-		free(prev);
+		delete prev;
 
 		return DRMAA2_SUCCESS;
 	}
@@ -328,7 +329,7 @@ drmaa2_error drmaa2_list_del(drmaa2_list l, const long pos) {
 	l->size--;
 	if (l->free_callback != NULL)
 		l->free_callback((void **) prev->data.value);
-	free(prev);
+	delete prev;
 
 	return DRMAA2_SUCCESS;
 }
@@ -381,14 +382,19 @@ void drmaa2_dict_default_callback(char **key, char **value) {
  *
  */
 drmaa2_dict drmaa2_dict_create(const drmaa2_dict_entryfree callback) {
-	drmaa2_dict d = (drmaa2_dict) malloc(sizeof(drmaa2_dict_s));
-	if(callback) {
+	try {
+		drmaa2_dict d = new drmaa2_dict_s();
+		if(callback) {
 		d->free_entry = callback;
-	} else {
-		d->free_entry = drmaa2_dict_default_callback;
+		} else {
+			d->free_entry = drmaa2_dict_default_callback;
+		}
+		d->head = NULL;
+		return d;
+	} catch (bad_alloc &ex) {
+		lasterror = DRMAA2_OUT_OF_RESOURCE;
+		return NULL;
 	}
-	d->head = NULL;
-	return d;
 }
 
 /**
@@ -411,9 +417,9 @@ void drmaa2_dict_free(drmaa2_dict * d) {
 		if ((*d)->free_entry != NULL)
 			(*d)->free_entry((char **) &(tmp->data.kv_pair.key),
 					(char **) &(tmp->data.kv_pair.value));
-		free(tmp);
+		delete tmp;
 	}
-	free(*d);
+	delete (*d);
 	*d = NULL;
 }
 
@@ -433,7 +439,7 @@ drmaa2_string_list drmaa2_dict_list(const drmaa2_dict d) {
 			(drmaa2_list_entryfree) drmaa2_string_free);
 	drmaa2_item item = d->head;
 	while (item != NULL) {
-		drmaa2_list_add(l, item->data.kv_pair.key);
+		drmaa2_list_add(l, strdup(item->data.kv_pair.key));
 		item = item->next;
 	}
 	return l;
@@ -510,7 +516,7 @@ drmaa2_error drmaa2_dict_del(drmaa2_dict d, const char *key) {
 			if (d->free_entry != NULL)
 				d->free_entry((char **) &(item->data.kv_pair.key),
 						(char **) &(item->data.kv_pair.value));
-			free(item);
+			delete (item);
 			return DRMAA2_SUCCESS;
 		}
 		prev = item;
@@ -543,12 +549,21 @@ drmaa2_error drmaa2_dict_set(drmaa2_dict d, const char *key, const char *val) {
 		}
 		item = item->next;
 	}
-	item = (drmaa2_item) malloc(sizeof(drmaa2_item_s));
-	item->data.kv_pair.key = key;
-	item->data.kv_pair.value = val;
-	item->next = NULL;
-	d->head == NULL ? (d->head = item) : (d->head->next = item);
-	return DRMAA2_SUCCESS;
+	try {
+		item = new drmaa2_item_s();
+		item->data.kv_pair.key = key;
+		item->data.kv_pair.value = val;
+		item->next = NULL;
+		if(d->head == NULL)
+			d->head = item;
+		else {
+			item->next = d->head;
+			d->head = item;
+		}
+		return DRMAA2_SUCCESS;
+	} catch (bad_alloc &ex) {
+		return DRMAA2_OUT_OF_RESOURCE;
+	}
 }
 
 /**
@@ -570,7 +585,8 @@ drmaa2_jinfo drmaa2_jinfo_create(void) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
 		return NULL;
 	}
-	jinfo->allocatedMachines = drmaa2_list_create(DRMAA2_SLOTINFOLIST, NULL);;
+	jinfo->allocatedMachines = drmaa2_list_create(DRMAA2_SLOTINFOLIST,
+					drmaa2_slotinfo_list_default_callback);
 	if(jinfo->allocatedMachines == NULL) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
 		drmaa2_jinfo_free(&jinfo);
@@ -598,8 +614,10 @@ drmaa2_rinfo drmaa2_rinfo_create(void) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
 		return NULL;
 	}
-	ri->usersACL = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
-	ri->reservedMachines = drmaa2_list_create(DRMAA2_SLOTINFOLIST, NULL);
+	ri->usersACL = drmaa2_list_create(DRMAA2_STRINGLIST,
+				drmaa2_string_list_default_callback);
+	ri->reservedMachines = drmaa2_list_create(DRMAA2_SLOTINFOLIST,
+				drmaa2_slotinfo_list_default_callback);
 	if(ri->usersACL == NULL || ri->reservedMachines == NULL) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
 		drmaa2_rinfo_free(&ri);
@@ -619,16 +637,7 @@ drmaa2_rinfo drmaa2_rinfo_create(void) {
  *
  */
 void drmaa2_jinfo_free(drmaa2_jinfo * ji) {
-	int size = 0, i = 0;
-	char *tmp = NULL;
 	if(*ji) {
-		size = drmaa2_list_size((*ji)->allocatedMachines);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				tmp = (char *)drmaa2_list_get((*ji)->allocatedMachines, i);
-				free(tmp);
-			}
-		}
 		drmaa2_list_free(&(*ji)->allocatedMachines);
 		if((*ji)->jobId)
 			free((char *)(*ji)->jobId);
@@ -644,7 +653,7 @@ void drmaa2_jinfo_free(drmaa2_jinfo * ji) {
 			free((char *)(*ji)->jobOwner);
 		if((*ji)->queueName)
 			free((char *)(*ji)->queueName);
-		free(*ji);
+		delete (*ji);
 		*ji = NULL;
 	}
 }
@@ -660,7 +669,7 @@ void drmaa2_jinfo_free(drmaa2_jinfo * ji) {
 void drmaa2_slotinfo_free(drmaa2_slotinfo * si) {
 	if (*si != NULL) {
 		drmaa2_string_free(&((*si)->machineName));
-		free(*si);
+		delete (*si);
 		*si = NULL;
 	}
 }
@@ -674,28 +683,12 @@ void drmaa2_slotinfo_free(drmaa2_slotinfo * si) {
  *
  */
 void drmaa2_rinfo_free(drmaa2_rinfo * ri) {
-	int size = 0, i = 0;
-	char *tmp = NULL;
 	if (*ri != NULL) {
 		drmaa2_string_free(&((*ri)->reservationId));
 		drmaa2_string_free(&((*ri)->reservationName));
-		size = drmaa2_list_size((*ri)->usersACL);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				tmp = (char *)drmaa2_list_get((*ri)->usersACL, i);
-				free(tmp);
-			}
-		}
 		drmaa2_list_free  (&((*ri)->usersACL));
-		size = drmaa2_list_size((*ri)->reservedMachines);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				tmp = (char *)drmaa2_list_get((*ri)->reservedMachines, i);
-				free(tmp);
-			}
-		}
 		drmaa2_list_free  (&((*ri)->reservedMachines));
-		free((*ri));
+		delete ((*ri));
 		*ri = NULL;
 	}
 	return;
@@ -718,13 +711,16 @@ drmaa2_jtemplate drmaa2_jtemplate_create(void) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
 		return NULL;
 	}
-	jt->jobEnvironment = drmaa2_dict_create(NULL);
-	jt->stageInFiles = drmaa2_dict_create(NULL);
-	jt->stageOutFiles = drmaa2_dict_create(NULL);
-	jt->resourceLimits = drmaa2_dict_create(NULL);
-	jt->candidateMachines = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
-	jt->email = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
-	jt->args = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	jt->jobEnvironment = drmaa2_dict_create(drmaa2_dict_default_callback);
+	jt->stageInFiles = drmaa2_dict_create(drmaa2_dict_default_callback);
+	jt->stageOutFiles = drmaa2_dict_create(drmaa2_dict_default_callback);
+	jt->resourceLimits = drmaa2_dict_create(drmaa2_dict_default_callback);
+	jt->candidateMachines = drmaa2_list_create(DRMAA2_STRINGLIST,
+					drmaa2_string_list_default_callback);
+	jt->email = drmaa2_list_create(DRMAA2_STRINGLIST,
+					drmaa2_string_list_default_callback);
+	jt->args = drmaa2_list_create(DRMAA2_STRINGLIST,
+					drmaa2_string_list_default_callback);
 	if(jt->jobEnvironment == NULL || jt->stageInFiles == NULL || jt->stageOutFiles == NULL
 			|| jt->resourceLimits == NULL || jt->email == NULL || jt->args == NULL) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
@@ -743,36 +739,13 @@ drmaa2_jtemplate drmaa2_jtemplate_create(void) {
  *
  */
 void drmaa2_jtemplate_free(drmaa2_jtemplate * jt) {
-	int size = 0, i = 0;
-	char *tmp = NULL;
 	if(*jt) {
 		drmaa2_dict_free(&(*jt)->jobEnvironment);
 		drmaa2_dict_free(&(*jt)->stageInFiles);
 		drmaa2_dict_free(&(*jt)->stageOutFiles);
 		drmaa2_dict_free(&(*jt)->resourceLimits);
-		size = drmaa2_list_size((*jt)->candidateMachines);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				tmp = (char *)drmaa2_list_get((*jt)->candidateMachines, i);
-				free(tmp);
-			}
-		}
 		drmaa2_list_free(&(*jt)->candidateMachines);
-		size = drmaa2_list_size((*jt)->email);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				tmp = (char *)drmaa2_list_get((*jt)->email, i);
-				free(tmp);
-			}
-		}
 		drmaa2_list_free(&(*jt)->email);
-		size = drmaa2_list_size((*jt)->args);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				tmp = (char *)drmaa2_list_get((*jt)->args, i);
-				free(tmp);
-			}
-		}
 		drmaa2_list_free(&(*jt)->args);
 		if((*jt)->remoteCommand)
 			free((char *)(*jt)->remoteCommand);
@@ -794,7 +767,7 @@ void drmaa2_jtemplate_free(drmaa2_jtemplate * jt) {
 			free((char *)(*jt)->queueName);
 		if((*jt)->accountingId)
 			free((char *)(*jt)->accountingId);
-		free((*jt));
+		delete (*jt);
 		*jt = NULL;
 	}
 	return;
@@ -818,8 +791,10 @@ drmaa2_rtemplate drmaa2_rtemplate_create(void) {
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
 		return NULL;
 	}
-	rt->usersACL = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
-	rt->candidateMachines = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	rt->usersACL = drmaa2_list_create(DRMAA2_STRINGLIST,
+					drmaa2_string_list_default_callback);
+	rt->candidateMachines = drmaa2_list_create(DRMAA2_STRINGLIST,
+					drmaa2_string_list_default_callback);
 	if (rt->usersACL == NULL || rt->candidateMachines == NULL) {
 		drmaa2_rtemplate_free(&rt);
 		lasterror = DRMAA2_OUT_OF_RESOURCE;
@@ -838,30 +813,14 @@ drmaa2_rtemplate drmaa2_rtemplate_create(void) {
  *
  */
 void drmaa2_rtemplate_free(drmaa2_rtemplate * rt) {
-	int size = 0, i = 0;
-	char *nodeVal;
 	if(*rt) {
 		if((*rt)->reservationName)
 			drmaa2_string_free(&(*rt)->reservationName);
 		if((*rt)->jobCategory)
 			drmaa2_string_free(&(*rt)->jobCategory);
-		size = drmaa2_list_size((*rt)->usersACL);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				nodeVal = (char *)drmaa2_list_get((*rt)->usersACL, i);
-				free(nodeVal);
-			}
-		}
 		drmaa2_list_free(&(*rt)->usersACL);
-		size = drmaa2_list_size((*rt)->candidateMachines);
-		if(size > 0) {
-			for(i = 0; i < size; i++) {
-				nodeVal = (char *)drmaa2_list_get((*rt)->candidateMachines, i);
-				free(nodeVal);
-			}
-		}
 		drmaa2_list_free(&(*rt)->candidateMachines);
-		free(*rt);
+		delete (*rt);
 		*rt = NULL;
 	}
 	return;
@@ -890,7 +849,7 @@ void drmaa2_notification_free(drmaa2_notification * n) {
 void drmaa2_queueinfo_free(drmaa2_queueinfo * qi) {
 	if (*qi != NULL) {
 		drmaa2_string_free(&((*qi)->name));
-		free(*qi);
+		delete (*qi);
 		*qi = NULL;
 	}
 }
@@ -907,7 +866,7 @@ void drmaa2_version_free(drmaa2_version * v) {
 	if(*v != NULL) {
 		drmaa2_string_free(&(*v)->major);
 		drmaa2_string_free(&(*v)->minor);
-		free (*v);
+		delete (*v);
 		*v = NULL;
 	}
 }
@@ -924,7 +883,7 @@ void drmaa2_machineinfo_free(drmaa2_machineinfo * mi) {
 	if(*mi != NULL) {
 		drmaa2_version_free(&(*mi)->machineOSVersion);
 		drmaa2_string_free(&(*mi)->name);
-		free (*mi);
+		delete (*mi);
 		*mi = NULL;
 	}
 }
@@ -1236,7 +1195,6 @@ drmaa2_r drmaa2_rsession_request_reservation(const drmaa2_rsession rs,
 		return NULL;
 	}
 
-	SessionManager *sessionManagerObj_ = Singleton<SessionManager, SessionManagerImpl>::getInstance();
 	ReservationSession *reservationSession = reinterpret_cast<ReservationSession *>(rs);
 	int size = 0;
 
@@ -1296,7 +1254,8 @@ drmaa2_r_list drmaa2_rsession_get_reservations(const drmaa2_rsession rs) {
 	ReservationSession *reservationSession = reinterpret_cast<ReservationSession *>(rs);
 	ReservationList rL = reservationSession->getReservations();
 	if(rL.size() > 0) {
-		drmaa2_r_list rl = drmaa2_list_create(DRMAA2_RESERVATIONLIST, NULL);
+		drmaa2_r_list rl = drmaa2_list_create(DRMAA2_RESERVATIONLIST,
+							drmaa2_r_list_default_callback);
 		for(list<Reservation*>::const_iterator it = rL.begin(); it != rL.end(); ++it) {
 			drmaa2_list_add(rl, (void *)const_cast<Reservation*>(*it));
 		}
@@ -1415,13 +1374,18 @@ drmaa2_rinfo drmaa2_r_get_info(const drmaa2_r r) {
 		ri->reservationName = strdup(rI.reservationName.c_str());
 	ri->reservedEndTime = rI.reservedEndTime;
 	if(rI.reservedMachines.size() > 0) {
-		//TODO: Need to add
+		for(SlotInfoList::const_iterator it = rI.reservedMachines.begin(); it != rI.reservedMachines.end(); ++it) {
+			drmaa2_slotinfo si = new drmaa2_slotinfo_s();
+			si->machineName = strdup((*it).machineName.c_str());
+			si->slots = (*it).slots;
+			drmaa2_list_add(ri->reservedMachines, si);
+		}
 	}
 	ri->reservedSlots = rI.reservedSlots;
 	ri->reservedStartTime = rI.reservedStartTime;
 	if(rI.usersACL.size() > 0) {
 		for(set<string>::const_iterator it = rI.usersACL.begin(); it != rI.usersACL.end(); ++it) {
-			drmaa2_list_add(ri->reservedMachines,strdup((*it).c_str()));
+			drmaa2_list_add(ri->usersACL,strdup((*it).c_str()));
 		}
 	}
 	return ri;
@@ -1484,7 +1448,7 @@ drmaa2_j_list drmaa2_jarray_get_jobs(const drmaa2_jarray ja) {
 	JobArray *obj = reinterpret_cast<JobArray *>(ja);
 	JobList jL = obj->getJobs();
 	if(jL.size() > 0) {
-		drmaa2_list jl = drmaa2_list_create(DRMAA2_JOBLIST, NULL);
+		drmaa2_list jl = drmaa2_list_create(DRMAA2_JOBLIST, drmaa2_j_list_default_callback);
 		for(list<Job*>::const_iterator it = jL.begin(); it != jL.end(); ++it) {
 			drmaa2_list_add(jl, (*it));
 		}
@@ -1779,7 +1743,7 @@ drmaa2_string_list drmaa2_jsession_get_job_categories(
 		const drmaa2_jsession js) {
 	if (js == NULL)
 		return NULL;
-	drmaa2_list jc = drmaa2_list_create(DRMAA2_STRINGLIST, NULL);
+	drmaa2_list jc = drmaa2_list_create(DRMAA2_STRINGLIST, drmaa2_string_list_default_callback);
 	JobSession *jobSession = reinterpret_cast<JobSession *>(js);
 	StringList jC = jobSession->getJobCategories();
 	if(jC.size() > 0) {
@@ -1860,7 +1824,7 @@ drmaa2_j_list drmaa2_jsession_get_jobs(const drmaa2_jsession js,
 		}
 		jobInfo.wallclockTime = filter->wallclockTime;
 		JobList jobs = jobSession->getJobs(jobInfo);
-		drmaa2_j_list j_list = drmaa2_list_create(DRMAA2_JOBLIST, NULL);
+		drmaa2_j_list j_list = drmaa2_list_create(DRMAA2_JOBLIST, drmaa2_j_list_default_callback);
 		for(list<Job*>::const_iterator iterator = jobs.begin(), end = jobs.end() ; iterator != end ; ++iterator ){
 			drmaa2_list_add(j_list, (void*)*iterator);
 		}
@@ -1967,7 +1931,6 @@ drmaa2_j drmaa2_jsession_run_job(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->jobEnvironment,(char*)key.c_str()));
 		dJobEnvironment.insert(std::pair<string,string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lEnv);
 	jobTemplate.jobEnvironment = dJobEnvironment;
@@ -2008,7 +1971,6 @@ drmaa2_j drmaa2_jsession_run_job(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->resourceLimits,(char*)key.c_str()));
 		dResourceLimits.insert(std::pair<string, string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lResource);
 	jobTemplate.resourceLimits = dResourceLimits;
@@ -2022,7 +1984,6 @@ drmaa2_j drmaa2_jsession_run_job(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->stageInFiles,(char*)key.c_str()));
 		dStageInFiles.insert(std::pair<string, string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lStageIn);
 	jobTemplate.stageInFiles = dStageInFiles;
@@ -2036,7 +1997,6 @@ drmaa2_j drmaa2_jsession_run_job(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->stageOutFiles,(char*)key.c_str()));
 		dStageOutFiles.insert(std::pair<string, string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lStageOut);
 	jobTemplate.stageOutFiles = dStageOutFiles;
@@ -2137,7 +2097,6 @@ drmaa2_jarray drmaa2_jsession_run_bulk_jobs(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->jobEnvironment,(char*)key.c_str()));
 		dJobEnvironment.insert(std::pair<string,string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lEnv);
 	jobTemplate.jobEnvironment = dJobEnvironment;
@@ -2178,7 +2137,6 @@ drmaa2_jarray drmaa2_jsession_run_bulk_jobs(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->resourceLimits,(char*)key.c_str()));
 		dResourceLimits.insert(std::pair<string, string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lResource);
 	jobTemplate.resourceLimits = dResourceLimits;
@@ -2192,7 +2150,6 @@ drmaa2_jarray drmaa2_jsession_run_bulk_jobs(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->stageInFiles,(char*)key.c_str()));
 		dStageInFiles.insert(std::pair<string, string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lStageIn);
 	jobTemplate.stageInFiles = dStageInFiles;
@@ -2206,7 +2163,6 @@ drmaa2_jarray drmaa2_jsession_run_bulk_jobs(const drmaa2_jsession js,
 		key.assign(tmp);
 		value.assign(drmaa2_dict_get(jt->stageOutFiles,(char*)key.c_str()));
 		dStageOutFiles.insert(std::pair<string, string>(key, value));
-		free(tmp);
 	}
 	drmaa2_list_free(&lStageOut);
 	jobTemplate.stageOutFiles = dStageOutFiles;
@@ -2643,7 +2599,8 @@ drmaa2_r_list drmaa2_msession_get_all_reservations(const drmaa2_msession ms) {
 	}
 	MonitoringSession *mS = reinterpret_cast<MonitoringSession*>(ms);
 	const ReservationList rL = mS->getAllReservations();
-	drmaa2_r_list r_list = drmaa2_list_create(DRMAA2_RESERVATIONLIST, NULL);
+	drmaa2_r_list r_list = drmaa2_list_create(DRMAA2_RESERVATIONLIST,
+						drmaa2_r_list_default_callback);
 	if(rL.size() > 0) {
 		for(ReservationList::const_iterator it = rL.begin(); it != rL.end() ; ++it ){
 			drmaa2_list_add(r_list, (void*)(*it));
@@ -2709,7 +2666,8 @@ drmaa2_j_list drmaa2_msession_get_all_jobs(const drmaa2_msession ms,
 		jInfo.terminatingSignal.assign(filter->terminatingSignal);
 	jInfo.wallclockTime = filter->wallclockTime;
 	const JobList jL = mS->getAllJobs(jInfo);
-	drmaa2_r_list j_list = drmaa2_list_create(DRMAA2_JOBLIST, NULL);
+	drmaa2_r_list j_list = drmaa2_list_create(DRMAA2_JOBLIST,
+						drmaa2_j_list_default_callback);
 	if(jL.size() > 0) {
 		for(JobList::const_iterator it = jL.begin(); it != jL.end() ; ++it ){
 			drmaa2_list_add(j_list, (void*)(*it));
@@ -2747,7 +2705,8 @@ drmaa2_queueinfo_list drmaa2_msession_get_all_queues(const drmaa2_msession ms,
 		gList.push_back(string((char *)drmaa2_list_get(names, i)));
 	}
 	const QueueInfoList qL = mS->getAllQueues(gList);
-	drmaa2_queueinfo_list q_list = drmaa2_list_create(DRMAA2_QUEUEINFOLIST, NULL);
+	drmaa2_queueinfo_list q_list = drmaa2_list_create(DRMAA2_QUEUEINFOLIST,
+								drmaa2_queueinfo_list_default_callback);
 	if(qL.size() > 0) {
 		for(QueueInfoList::const_iterator it = qL.begin(); it != qL.end() ; ++it ){
 			try {
@@ -2795,7 +2754,8 @@ drmaa2_machineinfo_list drmaa2_msession_get_all_machines(
 		mList.push_back(string((char *)drmaa2_list_get(names, i)));
 	}
 	const MachineInfoList mL = mS->getAllMachines(mList);
-	drmaa2_queueinfo_list m_list = drmaa2_list_create(DRMAA2_MACHINEINFOLIST, NULL);
+	drmaa2_queueinfo_list m_list = drmaa2_list_create(DRMAA2_MACHINEINFOLIST,
+						drmaa2_machineinfo_list_default_callback);
 	if(mL.size() > 0) {
 		for(MachineInfoList::const_iterator it = mL.begin(); it != mL.end() ; ++it ){
 			try {

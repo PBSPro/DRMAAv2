@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_JOBIMPL_H_
-#define SRC_JOBIMPL_H_
+#ifndef INC_JOBIMPL_H_
+#define INC_JOBIMPL_H_
 
 #include <drmaa2.hpp>
 #include <string>
@@ -223,4 +223,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_JOBIMPL_H_ */
+#endif /* INC_JOBIMPL_H_ */

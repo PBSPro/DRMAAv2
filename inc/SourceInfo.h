@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_SOURCEINFO_H_
-#define SRC_SOURCEINFO_H_
+#ifndef INC_SOURCEINFO_H_
+#define INC_SOURCEINFO_H_
 
 #include <string>
 
@@ -136,4 +136,4 @@ private:
 };
 } /* namespace drmaa2 */
 
-#endif /* SRC_SOURCEINFO_H_ */
+#endif /* INC_SOURCEINFO_H_ */

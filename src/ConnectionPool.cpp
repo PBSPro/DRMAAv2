@@ -69,6 +69,7 @@ void ConnectionPool::addConnection(const Connection& object)
 			addObj_->connect();
 		} catch (const Drmaa2Exception &ex) {
 			// TODO Wrap the Mutex in class, this code can be avoided
+			delete addObj_;
 			pthread_mutex_unlock(&ConnectionPool::_connMutex);
 			throw ;
 		}

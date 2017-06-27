@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_DENIEDBYDRMSEXCEPTION_H_
-#define SRC_DENIEDBYDRMSEXCEPTION_H_
+#ifndef INC_DENIEDBYDRMSEXCEPTION_H_
+#define INC_DENIEDBYDRMSEXCEPTION_H_
 
 #include <Drmaa2Exception.h>
 #include <Message.h>
@@ -69,4 +69,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_DENIEDBYDRMSEXCEPTION_H_ */
+#endif /* INC_DENIEDBYDRMSEXCEPTION_H_ */

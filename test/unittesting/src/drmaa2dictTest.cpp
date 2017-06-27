@@ -82,6 +82,7 @@ void drmaa2_dict_Test::testDictSetGet() {
 void drmaa2_dict_Test::testDictGetList() {
 	drmaa2_list l = drmaa2_dict_list(d);
 	CPPUNIT_ASSERT(l != NULL);
+	drmaa2_list_free(&l);
 }
 
 void drmaa2_dict_Test::testFreeNullDict() {

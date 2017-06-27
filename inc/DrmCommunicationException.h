@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_DRMCOMMUNICATIONEXCEPTION_H_
-#define SRC_DRMCOMMUNICATIONEXCEPTION_H_
+#ifndef INC_DRMCOMMUNICATIONEXCEPTION_H_
+#define INC_DRMCOMMUNICATIONEXCEPTION_H_
 
 #include <Drmaa2Exception.h>
 #include <Message.h>
@@ -68,4 +68,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_DRMCOMMUNICATIONEXCEPTION_H_ */
+#endif /* INC_DRMCOMMUNICATIONEXCEPTION_H_ */

@@ -51,14 +51,14 @@ using namespace std;
 CPPUNIT_TEST_SUITE_REGISTRATION(ReservationApiTest);
 
 void ReservationApiTest::TestReservationApi() {
-        drmaa2_rsession rs1 = drmaa2_create_rsession(strdup("SessionApi"), strdup("Contact"));
+	drmaa2_rsession rs1 = drmaa2_create_rsession("SessionApi", "Contact");
 	drmaa2_open_rsession("SessionApi");
 	drmaa2_rtemplate rt = drmaa2_rtemplate_create();
-        rt->reservationName = strdup("DRMAA2RESERVATION");
-        rt->startTime = time(NULL) + 30;
-        rt->duration = 1000;
-        rt->endTime = 0;
-        rt->minSlots = 1;
+	rt->reservationName = strdup("DRMAA2RESERVATION");
+	rt->startTime = time(NULL) + 30;
+	rt->duration = 1000;
+	rt->endTime = 0;
+	rt->minSlots = 1;
 	rt->minPhysMemory = 0;
 	drmaa2_r r = drmaa2_rsession_request_reservation( rs1, rt);
 	drmaa2_rinfo ri = drmaa2_r_get_info(r);

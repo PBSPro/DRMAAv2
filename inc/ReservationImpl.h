@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_RESERVATIONIMPL_H_
-#define SRC_RESERVATIONIMPL_H_
+#ifndef INC_RESERVATIONIMPL_H_
+#define INC_RESERVATIONIMPL_H_
 
 #include <string>
 
@@ -130,4 +130,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_RESERVATIONIMPL_H_ */
+#endif /* INC_RESERVATIONIMPL_H_ */

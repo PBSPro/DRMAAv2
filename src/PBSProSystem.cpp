@@ -453,28 +453,48 @@ JobList PBSProSystem::getJobs(const Connection& connection_,
 			iterator != _allJobs.end(); ++iterator) {
 		JobImpl *_job = new JobImpl(*iterator);
 		JobInfo _jInfo = _job->getJobInfo();
-		if (!filter_.jobId.empty() && _jInfo.jobId != filter_.jobId)
+		if (!filter_.jobId.empty() && _jInfo.jobId != filter_.jobId) {
+			delete _job;
 			continue;
+		}
 		if (!filter_.annotation.empty()
-				&& _jInfo.annotation != filter_.annotation)
+				&& _jInfo.annotation != filter_.annotation) {
+			delete _job;
 			continue;
-		if (_jInfo.exitStatus != filter_.exitStatus)
+		}
+		if (_jInfo.exitStatus != filter_.exitStatus) {
+			delete _job;
 			continue;
-		if (_jInfo.jobState != filter_.jobState)
+		}
+		if (_jInfo.jobState != filter_.jobState) {
+			delete _job;
 			continue;
+		}
 		if (!filter_.annotation.empty()
-				&& _jInfo.submissionMachine != filter_.submissionMachine)
+				&& _jInfo.submissionMachine != filter_.submissionMachine) {
+			delete _job;
 			continue;
-		if (_jInfo.cpuTime != filter_.cpuTime)
+		}
+		if (_jInfo.cpuTime != filter_.cpuTime) {
+			delete _job;
 			continue;
-		if (difftime(_jInfo.wallclockTime, filter_.wallclockTime) > 0)
+		}
+		if (difftime(_jInfo.wallclockTime, filter_.wallclockTime) > 0) {
+			delete _job;
 			continue;
-		if (difftime(_jInfo.submissionTime, filter_.submissionTime) > 0)
+		}
+		if (difftime(_jInfo.submissionTime, filter_.submissionTime) > 0) {
+			delete _job;
 			continue;
-		if (difftime(_jInfo.dispatchTime, filter_.dispatchTime) > 0)
+		}
+		if (difftime(_jInfo.dispatchTime, filter_.dispatchTime) > 0) {
+			delete _job;
 			continue;
-		if (difftime(_jInfo.finishTime, filter_.finishTime) > 0)
+		}
+		if (difftime(_jInfo.finishTime, filter_.finishTime) > 0) {
+			delete _job;
 			continue;
+		}
 		_jList.push_back(_job);
 	}
 	if (batchRsp_)
@@ -547,6 +567,8 @@ MachineInfoList PBSProSystem::getAllMachines(const Connection& connection_,
 		}
 		_mList.push_back(_mInfo);
 	}
+	if(batchRsp_)
+		pbs_statfree(batchRsp_);
 	return _mList;
 }
 
@@ -573,7 +595,7 @@ QueueInfoList PBSProSystem::getAllQueues (const Connection& connection_,
 				}
 			}
 			struct QueueInfo _queueInfo;
-			_queueInfo.name.assign(tmpBatchRsp_->name);
+			_queueInfo.name.assign(string(tmpBatchRsp_->name));
 			_queueList.push_back(_queueInfo);
 		}
 		tmpBatchRsp_ = tmpBatchRsp_->next;
@@ -640,23 +662,33 @@ void PBSProSystem::getReservationInfo(const Connection& connection_,
 				string del = "+";
 				size_t pos = 0;
 				string strToken;
-				long slotNum_;
+				resvNodes_.erase(std::remove(resvNodes_.begin(), resvNodes_.end(), '('), resvNodes_.end());
+				resvNodes_.erase(std::remove(resvNodes_.begin(), resvNodes_.end(), ')'), resvNodes_.end());
 				while ((pos = resvNodes_.find(del)) != std::string::npos) {
 				    strToken = resvNodes_.substr(0, pos);
 				    SlotInfo _slot;
 				    _slot.machineName = strToken.substr(0,strToken.find(":"));
 				    strToken.erase(0,strToken.find(":") + 1);
-				    _slot.slots = strToken;
+				    size_t npos = strToken.find("ncpus=");
+				    string cpuVal = strToken.substr(npos + 6);
+				    strToken = cpuVal.substr(0,cpuVal.find(":"));
+				    stringstream sStream(strToken);
+				    sStream >> _slot.slots;
+				    reservationImpl_._rInfo.reservedSlots += _slot.slots;
 				    reservationImpl_._rInfo.reservedMachines.push_back(_slot);
 				    resvNodes_.erase(0, pos + 1);
 				    strToken.clear();
-				    slotNum_++;
 				}
 				if(resvNodes_.length() > 0) {
 					SlotInfo _slot;
-					_slot.machineName = resvNodes_.substr(0,strToken.find(":"));
-					resvNodes_.erase(0,strToken.find(":") + 1);
-					_slot.slots = resvNodes_;
+					_slot.machineName = resvNodes_.substr(0,resvNodes_.find(":"));
+					resvNodes_.erase(0,resvNodes_.find(":") + 1);
+					size_t npos = resvNodes_.find("ncpus=");
+                                    	string cpuVal = resvNodes_.substr(npos + 6);
+                                    	strToken = cpuVal.substr(0,cpuVal.find(":"));
+				        stringstream sStream(strToken);
+				        sStream >> _slot.slots;
+				     	reservationImpl_._rInfo.reservedSlots += _slot.slots;
 					reservationImpl_._rInfo.reservedMachines.push_back(_slot);
 				}
 			}

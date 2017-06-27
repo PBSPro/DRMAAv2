@@ -35,11 +35,11 @@
  *
  */
 
-#ifndef SESSION_H_
-#define SESSION_H_
+#ifndef INC_SESSION_H_
+#define INC_SESSION_H_
 
 #ifdef DRMAA2_DEBUG
 void drmaa2_impl();
 #endif
 
-#endif /* SESSION_H_ */
+#endif /* INC_SESSION_H_ */

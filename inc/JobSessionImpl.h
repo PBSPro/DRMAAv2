@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_JOBSESSIONIMPL_H_
-#define SRC_JOBSESSIONIMPL_H_
+#ifndef INC_JOBSESSIONIMPL_H_
+#define INC_JOBSESSIONIMPL_H_
 
 #include <list>
 #include <string>
@@ -157,4 +157,4 @@ public:
 
 }
 
-#endif /* SRC_JOBSESSIONIMPL_H_ */
+#endif /* INC_JOBSESSIONIMPL_H_ */

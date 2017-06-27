@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef API_CPP_BINDING_TIMEOUTEXCEPTION_H_
-#define API_CPP_BINDING_TIMEOUTEXCEPTION_H_
+#ifndef INC_TIMEOUTEXCEPTION_H_
+#define INC_TIMEOUTEXCEPTION_H_
 
 #include <Drmaa2Exception.h>
 #include <Message.h>
@@ -68,4 +68,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* API_CPP_BINDING_TIMEOUTEXCEPTION_H_ */
+#endif /* INC_TIMEOUTEXCEPTION_H_ */

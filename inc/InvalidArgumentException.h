@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef API_CPP_BINDING_INVALIDARGUMENTEXCEPTION_H_
-#define API_CPP_BINDING_INVALIDARGUMENTEXCEPTION_H_
+#ifndef INC_INVALIDARGUMENTEXCEPTION_H_
+#define INC_INVALIDARGUMENTEXCEPTION_H_
 
 #include <Drmaa2Exception.h>
 #include <Message.h>
@@ -70,4 +70,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* API_CPP_BINDING_INVALIDARGUMENTEXCEPTION_H_ */
+#endif /* INC_INVALIDARGUMENTEXCEPTION_H_ */

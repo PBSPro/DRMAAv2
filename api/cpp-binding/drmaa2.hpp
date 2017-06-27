@@ -183,6 +183,12 @@ struct DrmaaNotification {
 	string jobId; /*!< Unique Job identification in DRMS */
 	string sessionName; /*!< SessionName from which job is submitted */
 	JobState jobState; /*!< Job State */
+	DrmaaNotification() {
+		event = DrmaaEvent();
+		jobId.empty();
+		sessionName.empty();
+		jobState = UNDETERMINED;
+	}
 };
 
 /**
@@ -204,12 +210,16 @@ public:
  *
  * */
 struct Version {
+	string major; /*!< Major number of version*/
+	string minor; /*!< Minor number of version*/
+	Version() {
+		major.empty();
+		minor.empty();
+	}
 	Version(string major_, string minor_) :
 			major(major_), minor(minor_) {
 		//DO nothing
 	}
-	string major; /*!< Major number of version*/
-	string minor; /*!< Minor number of version*/
 };
 
 /**
@@ -231,6 +241,19 @@ struct ReservationTemplate {
 	long minPhysMemory; /*!< Minimum physical required */
 	OperatingSystem machineOS; /*!< Machine OS*/
 	CpuArchitecture machineArch; /*!< Machine Cpu Architecture*/
+	ReservationTemplate() {
+		reservationName.empty();
+		startTime = 0;
+		endTime = 0;
+		duration = 0;
+		minSlots = 0;
+		maxSlots = 0;
+		usersACL.empty();
+		candidateMachines.empty();
+		minPhysMemory = 0;
+		machineOS = OTHER_OS;
+		machineArch = OTHER_CPU;
+	}
 };
 
 /**
@@ -240,6 +263,9 @@ struct ReservationTemplate {
  */
 struct QueueInfo {
 	string name; /*!< Queue name*/
+	QueueInfo() {
+		name.empty();
+	}
 };
 
 typedef list<QueueInfo> QueueInfoList;
@@ -266,6 +292,24 @@ struct JobInfo {
 	time_t submissionTime; /*!< Submission time*/
 	time_t dispatchTime; /*!< Dispatch time*/
 	time_t finishTime; /*!< Finish time*/
+	JobInfo() {
+		jobId.empty();
+		exitStatus = 0;
+		terminatingSignal.empty();
+		annotation.empty();
+		jobState = UNDETERMINED;
+		jobSubState.empty();
+		allocatedMachines.empty();
+		submissionMachine.empty();
+		jobOwner.empty();
+		slots = 0;
+		queueName.empty();
+		wallclockTime = 0;
+		cpuTime = 0;
+		submissionTime = 0;
+		dispatchTime = 0;
+		finishTime = 0;
+	}
 };
 typedef list<JobInfo> JobInfoList;
 
@@ -276,7 +320,11 @@ typedef list<JobInfo> JobInfoList;
  */
 struct SlotInfo {
 	string machineName; /*!< Machine name*/
-	string slots; /*!< Slots*/
+	long long slots; /*!< Slots*/
+	SlotInfo() {
+		machineName.empty();
+		slots = 0;
+	}
 };
 typedef list<SlotInfo> SlotInfoList;
 
@@ -293,6 +341,15 @@ struct ReservationInfo {
 	set<string> usersACL; /*!< User access control list of reservation*/
 	long reservedSlots; /*!< Slots reserved for reservation*/
 	SlotInfoList reservedMachines; /*!< Reservation machines*/
+	ReservationInfo() {
+		reservationId.empty();
+		reservationName.empty();
+		reservedStartTime = 0;
+		reservedEndTime = 0;
+		usersACL.empty();
+		reservedSlots = 0;
+		reservedMachines.empty();
+	}
 };
 typedef list<ReservationInfo> ReservationInfoList;
 
@@ -332,6 +389,38 @@ struct JobTemplate {
 	map<string, string> stageOutFiles; /*!< Stage out files*/
 	map<string, string> resourceLimits; /*!< Resource limits*/
 	string accountingId; /*!< Account id*/
+	JobTemplate() {
+		remoteCommand.empty();
+		args.empty();
+		submitAsHold = false;
+		rerunnable = false;
+		jobEnvironment.empty();
+		workingDirectory.empty();
+		jobCategory.empty();
+		email.empty();
+		emailOnStarted = false;
+		emailOnTerminated = false;
+		jobName.empty();
+		inputPath.empty();
+		outputPath.empty();
+		errorPath.empty();
+		joinFiles = false;
+		reservationId.empty();
+		queueName.empty();
+		minSlots = 0;
+		maxSlots = 0;
+		priority = 0;
+		candidateMachines.empty();
+		minPhysMemory = 0;
+		machineOS = OTHER_OS;
+                machineArch = OTHER_CPU;
+		startTime = 0;
+		deadlineTime = 0;
+		stageInFiles.empty();
+		stageOutFiles.empty();
+		resourceLimits.empty();
+		accountingId.empty();
+	}
 };
 
 /**
@@ -340,8 +429,6 @@ struct JobTemplate {
  * 			execution host in the DRMS
  */
 struct MachineInfo {
-	MachineInfo(string major_ = string(), string minor_ = string()) : machineOSVersion(major_, minor_) {
-	}
 	string name; /*!< Machine Name*/
 	bool available; /*!< Machine Availability*/
 	long sockets; /*!< Number of sockets in Machine*/
@@ -353,6 +440,18 @@ struct MachineInfo {
 	OperatingSystem machineOS; /*!< OS of machine */
 	Version machineOSVersion; /*!< OS version of machine*/
 	CpuArchitecture machineArch; /*!< CPU architecture of version*/
+	MachineInfo(string major_ = string(), string minor_ = string()) : machineOSVersion(major_, minor_) {
+		name.empty();
+		available = false;
+		sockets = 0;
+		coresPerSocket = 0;
+		threadsPerCore = 0;
+		load = 0;
+		physMemory = 0;
+		virtMemory = 0;
+		machineOS = OTHER_OS;
+                machineArch = OTHER_CPU;
+	}
 };
 typedef list<MachineInfo> MachineInfoList;
 

@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_SESSIONMANAGERIMPL_H_
-#define SRC_SESSIONMANAGERIMPL_H_
+#ifndef INC_SESSIONMANAGERIMPL_H_
+#define INC_SESSIONMANAGERIMPL_H_
 
 #include <drmaa2.hpp>
 #include <pthread.h>
@@ -171,4 +171,4 @@ public:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_SESSIONMANAGERIMPL_H_ */
+#endif /* INC_SESSIONMANAGERIMPL_H_ */

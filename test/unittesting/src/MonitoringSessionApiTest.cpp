@@ -54,4 +54,6 @@ void MonitoringSessionApiTest::TestMonitoringSessionApi() {
 	drmaa2_msession ms1 = drmaa2_open_msession("MSessionApi");
 	drmaa2_queueinfo_list ql = drmaa2_msession_get_all_queues(ms1, NULL);
 	drmaa2_machineinfo_list ml = drmaa2_msession_get_all_machines(ms1, NULL);
+	drmaa2_list_free(&ql);
+	drmaa2_list_free(&ml);
 }

@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_DRMAA2EXCEPTION_H_
-#define SRC_DRMAA2EXCEPTION_H_
+#ifndef INC_DRMAA2EXCEPTION_H_
+#define INC_DRMAA2EXCEPTION_H_
 
 #include <Message.h>
 #include <SourceInfo.h>
@@ -122,4 +122,4 @@ private:
 
 } /* namespace drmaa2 */
 
-#endif /* SRC_DRMAA2EXCEPTION_H_ */
+#endif /* INC_DRMAA2EXCEPTION_H_ */

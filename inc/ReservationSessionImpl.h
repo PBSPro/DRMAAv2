@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SRC_RESERVATIONSESSIONIMPL_H_
-#define SRC_RESERVATIONSESSIONIMPL_H_
+#ifndef INC_RESERVATIONSESSIONIMPL_H_
+#define INC_RESERVATIONSESSIONIMPL_H_
 
 #include <list>
 #include <string>
@@ -110,4 +110,4 @@ public:
 };
 }
 
-#endif /* SRC_RESERVATIONSESSIONIMPL_H_ */
+#endif /* INC_RESERVATIONSESSIONIMPL_H_ */

@@ -34,8 +34,8 @@
  * trademark licensing policies.
  *
  */
-#ifndef CONNECTIONPOOL_H
-#define CONNECTIONPOOL_H
+#ifndef INC_CONNECTIONPOOL_H
+#define INC_CONNECTIONPOOL_H
 
 #include <Connection.h>
 #include <pthread.h>
